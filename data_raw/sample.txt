@@ -1,0 +1,3980 @@
+0:00
+Learn how to train a language model from scratch that can mimic anyone's unique
+0:05
+communication style using your own WhatsApp or Telegram chat data. This
+0:11
+course walks you through the complete process from data extraction and
+0:17
+cleaning to tokenization and transformer architecture implementation giving you
+0:23
+the skills to preserve someone's voice or create models for under reppresented
+0:29
+languages. Immad sodic developed this course. Hi everyone and welcome to this
+0:35
+new course on pre-code camp. My name is Ahmad and I am here to guide you step by
+0:41
+step on how to pre-train and fine-tune a language model in your language. This
+0:48
+course covers many topics. So I have decided to divide it into two parts. In
+0:54
+the first part, I'm going to start small. I'll show you how to load a small
+1:00
+data set and later train a small language model. This part will allow us
+1:05
+to understand the individual concepts clearly. In the second part which I
+1:11
+called less scale is made to show you how to use large data sets and how to
+1:17
+train models with large parameter sizes. In this course you will learn the full
+1:24
+pipeline. The first step consists of taking the data set. We are going to
+1:29
+work with textual data. Later we are going to train a
+1:34
+tokenizer with the bite pair encoding algorithm. A tokenizer is used to
+1:40
+convert the text into a sequence of numbers. These are the individual tokens
+1:46
+that the model will train on. Later I will show you the transformer
+1:52
+architecture which is used to create the language model. And then after creating
+1:57
+the model, after encoding the data, we are going to start the pre-training phase. At the end of this phase, we are
+2:05
+going to get a base model. Later, in order to create a conversational
+2:11
+assistant, we are going to create a supervised fine-tuning data set that we
+2:17
+will use in the fine-tuning step. And at the end of the pipeline, we are going to
+2:23
+get an assistant that we can chat with since we have a lot to cover. I recommend taking your time. Learn each
+2:30
+part slowly because this course is made for beginners. So don't worry about any
+2:37
+concepts. You can find all slides, notebooks, scripts, everything I have
+2:42
+used in this course in the link that I will make sure to put in the video description. Also, if you want to
+2:49
+connect with me, I will make sure to link my LinkedIn profile or if you want
+2:54
+come to my YouTube channel or connect with me on Discord. I'll be happy to
+2:59
+chat with you. Now, let's get started. Hello, welcome to this course.
+Introduction
+3:05
+Here you will learn how to train a language model from scratch. The model
+3:11
+that you will train will be able to chat like you or anyone else you want. You
+3:17
+will learn how to use chat messages from apps like WhatsApp and Telegram to train
+3:24
+your own model. I made this course because I was curious and wanted to
+3:29
+understand the full process of training a language model. In this introductory
+3:35
+video, I will explain what you will learn in this course. Why take this course? One reason is that it is amazing
+3:42
+to use math to copy the way someone talks. This could even bring back the
+3:48
+way a person spoke even if they are no longer alive. Another reason is to learn
+3:54
+how to train a language model step by step. We will look at data extraction,
+4:00
+data cleaning, tokenization and more. Also, I am from Morocco and we speak da.
+4:08
+But when we type, we mix French and Arabic letters and sometimes we use
+4:14
+numbers too. This makes it hard for a language model to understand. If you
+4:20
+look at the image and if you are a Moroccan person or someone from Algeria,
+4:25
+you will understand what I said here and you will see that the model is not that great because I mean training a very big
+4:33
+model to learn everything is not is not going to work especially for for our own
+4:38
+language. So this is why I wanted to train a model specifically trained only
+4:44
+on DJ and let's see if it can learn this language. Well, how do we do this? The
+4:50
+first step in the pipeline is data extraction. You need to get your chat
+4:55
+messages. You can extract them from WhatsApp, Signal or Telegram. You can
+5:01
+use group chats or private conversations. This is useful if you
+5:07
+want to train a model on a rare language. Next, we combine the text. The
+5:13
+row chat data is in a back and forth format. But what we need at the end is
+5:20
+to concatenate the text in order to have a sequence of text. The third step is
+5:26
+text encoding. We will use BP which stands for byte pair encoding to create
+5:33
+our vocabulary and encode the text. You can learn about BP and tokenization from
+5:40
+these three sources. You have this Wikipedia article, this hugging face course and Karpati's YouTube video.
+5:48
+After running the BPE algorithm, we will have a vocabulary. Each word or part of
+5:56
+a word will have a unique ID. Then we will encode the text using these IDs.
+6:03
+Next, we will build the transformer model from scratch. I will do my best to
+6:09
+explain it, but I also recommend watching the stat quest video. It
+6:14
+explains transformers very very well. Now we will train the model. We will
+6:20
+split the data into two parts. Training data. This is going to be used for learning and validation data. This one
+6:28
+is going to be used to check how well the model is learning. After training,
+6:34
+we will have a base model. This model can predict the next word based on the
+6:40
+training data, but it is not very useful yet. To make it useful, we need to
+6:47
+fine-tune it. We will create a fine-tuning data set. The orange section
+6:52
+is where you put the messages of the person you want to imitate. If you want
+6:57
+the model to chat like you, then put your messages there. In the last step,
+7:03
+we fine-tune the model using this special data set. After this, the model
+7:09
+will be able to mimic the way that person talks. But the hardest part is
+7:14
+choosing the good fine-tuning data set because it affects how the model
+7:21
+behaves. Are you ready? Let's begin. Hi, in this video we will talk about data
+Training Data
+7:29
+extraction and data processing. I will focus on exporting your conversations
+7:35
+from WhatsApp because this is the main application that I use. But for other
+7:41
+applications like Telegram or Signal, I will make sure to put links in the video
+7:47
+description to help you extract the data from them. Extracting all conversations
+7:53
+from WhatsApp can't be done by just one click. You have to export your
+8:00
+conversations one by one. This is tedious and makes the process manual.
+8:06
+Here are the steps that you should follow to extract the conversations in a
+8:11
+txt file. First, click on the three dots on the top right corner. Then click on
+8:20
+the more button. After that click on export chat and choose without media. If
+8:28
+you want to include media then you should add more processing steps. For
+8:34
+people who speak well-known languages, it will be easier for you to extract the
+8:40
+text from audio files. For images, you can use vision models to give you a
+8:46
+description of the image. In my case, I skipped this because there are no good
+8:52
+models that can do speech to text in DAO. Here is the pipeline that we will
+8:58
+follow. The first step is exporting the data. In the case of WhatsApp, the
+9:04
+format will be like this. You have the date in this format. Then you have the
+9:11
+name of person who is talking and finally the message. The second step in
+9:17
+the pipeline is applying filters to the exported data. We need to do this
+9:23
+because the data should be cleaned. We need to remove links special tags like
+9:28
+media omitted because we skipped exporting media. So WhatsApp will
+9:34
+replace them with this tag. If you deleted the message, you will have this tag. So, we need to remove these. We
+9:40
+will need to remove email addresses. I mean here, if you are using the model for you, you don't need to do this. But
+9:47
+if you are planning to share this with people, then please make sure to remove confidential data. We will remove
+9:53
+tagging and we will apply other filters. We will see this in the notebook section. And finally, we will
+10:00
+concatenate the cleaned data into one giant sequence of text. This output will
+10:07
+be used in the next video where we are going to talk about byte pair encoding
+10:13
+and tokenization. Now let's code. Go to the video description because you will find
+10:19
+the link that will take you to my GitHub repository. Clone the repo. It contains
+10:24
+the slides and notebooks. Open the project in your preferred IDE and follow
+10:31
+me. Open the left panel. Open the data folder and put every txt file that you
+10:39
+exported from WhatsApp inside the private folder. Then open the notebooks
+10:45
+folder. Currently, we have just one notebook. This is the one that you need to open. And let's start. In the first
+10:52
+cell in this notebook, we have the read WhatsApp chat method. This one will take
+11:00
+a file path to read the file and then apply the filters. We defined them here
+11:06
+to remove unwanted messages. As I said, inside the read WhatsApp chat method, we
+11:13
+are defining our filters. Some of them are easy while others are a bit
+11:19
+confusing because we are using regular expressions, but I will make sure to explain this in simple terms. The
+11:26
+encryption message filter will discard any line where this text appears. If you
+11:34
+are using another language, please modify this accordingly. I was using English, so this is why it appeared in
+11:40
+English. But if you are using French or Arabic, then this string should be
+11:46
+modified. The media pattern filter will do the same. It will remove any lines
+11:52
+with this tag. As I said in the first section, this tag is added when you
+11:58
+decide to export the data without media. Email pattern and URL pattern will
+12:05
+filter emails and URLs. And here we are using regular expressions as I said to
+12:12
+catch those emails and URLs. You don't need to understand this fully but as I
+12:18
+said these these are going to so to find emails and URLs and remove them. The
+12:25
+edited message filter will just replace this tag that we have here with an empty
+12:32
+string. The next four filters deleted message null message created group
+12:38
+message and added you to group message are going to discard rows with these
+12:44
+terms. If we find rows with these terms we are going to remove them. Finally the tagging pattern will replace any tagging
+12:52
+with an empty string. I hope that you understood those filters. After that we are going to read the the file and we
+12:59
+are going to read it. We are going to extract the lines from it. After that, we are going to iterate over all lines
+13:07
+and apply the filters. If the filters are not met, we will keep the line. But
+13:14
+if that is not the case, we will discard it. Inside the if statement, we replace
+13:20
+the edited message string and tag in with an empty string and strip the
+13:28
+resulting string. After that we basically add the line to the filtered
+13:34
+lines list. The following regular expression is designed to extract the
+13:41
+timestamp sender and the message to basically create a data frame. I chose
+13:48
+to store the data in a data frame because it will make it easier to look
+13:53
+at the data. Now run this cell. You can see that we were able to execute it
+13:59
+without any issue. Now in this cell we are going to use that function. First we
+14:04
+are going to loop over all the files that exist in the private folder. We
+14:10
+will extract the file name by using the stamp property and store the data frame
+14:16
+in this all chats dictionary. Let me execute this. Behind the scenes I have a
+14:23
+lot of files but because that data is confidential I'll try to basically use a
+14:30
+dummy data set just to show you how the data frame looks like. As I said this is
+14:35
+just a dummy data frame just to show you how it looks like. In the first column we have the time stamp, we have the
+14:41
+sender and the message. As I said, I chose the data frame because it will make it easier for you to look at the
+14:48
+data instead of just looking at it in the txt file. In the next step, we are
+14:54
+going to concatenate every message in the message column into one big string.
+15:01
+Let me run this. In my case, this string contains
+15:08
+1,430,000 characters. This is a lot but the more you get the better the
+15:14
+performance will be when we are going to train the model. In the next video we
+15:20
+will take this text sequence and apply the bite pair encoding algorithm on it
+15:27
+to create our vocabulary and to encode the text sequence. See you next time.
+Tokenization
+15:34
+Hello everyone. In this video we will talk about text encoding. This step in
+15:40
+the pipeline is very important because it affects the behavior of the language
+15:46
+model. Language models are not trained directly on text. If you take a
+15:52
+transformer model, you cannot give it a sentence for example, how are you and
+15:58
+train it. This is not possible. Instead, transformers work on numbers. If this
+16:05
+time I feed this list of numbers to the model, it will understand it better.
+16:12
+Converting text to numbers is what we call encoding and it can be achieved
+16:18
+with these methods. We have character level encoding, word level encoding and
+16:25
+bite pair encoding. Let's compare these methods. I will use this sentence as an
+16:32
+example. Here is a table that summarizes the comparison between the three
+16:38
+methods. Let's start with the sequence length. The character level encoding has
+16:44
+the highest length while the word level encoder has the lowest. The sentence is
+16:51
+split into characters in the case of the character level encoding and in the case
+16:57
+of the word level encoding it was split by word. While the BPE algorithm divides
+17:04
+the sentence in between. So here sometimes you will get words, sometimes you get subwords etc. The vocabulary
+17:11
+size is the number of tokens that you will extract from your data set. These
+17:17
+numbers will vary depending on your use case. Generally character level encoders
+17:24
+have very small vocabularies while word level encoders
+17:30
+especially if you use multiple languages will have the biggest vocabulary. You
+17:36
+should always aim to find a compromise between the vocabulary size and the
+17:42
+sequence length. Generally if the vocabulary size increases then the
+17:48
+sequence length will decrease and vice versa. We can see this behavior in the
+17:53
+table. For the character level encoder we have a small vocabulary and as a
+18:00
+result the sequence length is big. We don't want this because working with
+18:05
+very large sequences will fill the context window of the model very quickly. On the other hand, the word
+18:13
+level encoder uses a very big vocabulary. This is good because the
+18:19
+sequence length now is small. But the problem is that this is computationally
+18:24
+expensive to run because you will have very big matrices. It will slow down the training significantly. This leaves us
+18:32
+with the BP algorithm. The great thing about it is that we can control the size
+18:37
+of the vocabulary based on our hardware and data we work with. Now let's try to
+18:43
+understand this algorithm. BPE stands for bite pair encoding and this is an
+18:50
+algorithm designed to compress text into a small sequence. Let's see how it works
+18:57
+through this example. Let's start with this sequence of text. The first step is
+19:02
+to convert it to a list of bytes. After that, we compute the number of times
+19:09
+each pair appears in the sequence. For example, 97, 97. This pair occurs four
+19:17
+times in this sequence. After computing the number of occurrences, we will try
+19:22
+to find the max pair and we will replace it with a new token. I chose
+19:29
+666 because it doesn't exist in the vocabulary. And then what I will do,
+19:34
+I'll just replace 97, 97 with this new token. The step that we performed here
+19:41
+is called a merge step. And we can continue from there. We will take this list of bytes. We will do the same
+19:49
+thing. We will compute the number of occurrences. We will search for the pair that has the maximum number of
+19:55
+occurrences and we will replace it with a new token. And this is the second
+20:02
+merge that we performed. And we can perform other merges if we need. As I said before, the bite pairing coding
+20:09
+allows you to define how many merges you want to perform so that you can control
+20:14
+the size of the the vocabulary. So if you want to perform just the merges, you
+20:19
+can do that. Once you reach that last merge, then the algorithm will stop and
+20:25
+you will get your vocabulary. Finally, I want to share with you these links. If
+20:31
+you want to read more about the BP algorithm, you have Wikipedia articles,
+20:36
+YouTube videos and uh this GitHub repository that we will use in the
+20:43
+coding section. And this is exactly what we are going to do now. Before showing
+20:49
+you the notebook, go to my GitHub repository and pull the latest changes
+20:54
+that I pushed. I am changing this repository regularly. So make sure that
+20:59
+you have the latest changes. And I mentioned this main BP repository. It
+21:05
+was created by Andre Karpathy. It will allow us to use the BPA algorithm
+21:10
+efficiently without making it ourselves. But I made sure to link Andre's video
+21:16
+because he explained the BPA algorithm very very well. So here I opened VS Code
+21:22
+and here you can see that we have two notebooks instead of just one. I want you to open the first notebook because I
+21:28
+forgot to do something in the previous video. If you scroll down here, I added a new cell that will store the text
+21:36
+sequence in the output folder. Make sure to create this folder if you don't have it because it is ignored. I have already
+21:44
+done this. So, and I have rerun this notebook. And if I open the output
+21:49
+folder, you can see that I have the sequence text. So, please make sure to
+21:54
+rerun the notebook in order to generate this file because we will need it in the second notebook. Now, close the first
+22:01
+one and open the second notebook. And this is exactly what we are doing. So,
+22:07
+please load the sequence of text. Here are the number of characters that are in
+22:12
+this text sequence with the data that I have here. As I said, I am using the min
+22:17
+bp repository. Sadly, this project you cannot just use pip install because it
+22:24
+wasn't added to the pi repository, but I made sure to clone it and I kept just
+22:30
+the scripts that we need. So, they are already included. So if you pulled the latest changes, you should be able to to
+22:39
+have access to this uh repository because I need to import the minp to the
+22:44
+notebook. I have added this cell here. I used the CIS module to add the parent
+22:52
+directory to Python's system path. If you don't do this, then Python will
+22:58
+would not be able to recognize where does the basic tokenizer exist. So here
+23:03
+we are importing the basic tokenizer from minp. There are many many more
+23:09
+tokenizers that you can use but for me um I mean the basic tokenizer is enough.
+23:14
+So let's just use it here. You create an instance of the basic tokenizer. You
+23:20
+take that object and you call the train method. The train method expects two
+23:25
+things. It expects the text sequence. This is the string that we exported from
+23:31
+the first notebook. And the vocabulary size, this is what I said in the slides. You can configure the BP algorithm to
+23:39
+give you an exact vocabulary size. It's not like using words or character level
+23:45
+encoders. This one you can customize it however you like. So let's just run
+23:50
+this. This will take I think 1 to 2 minutes. It depends on the size of your data set. For me, I have uh 1 million
+23:59
+400,000 characters. If you have more uh if you have 10 million 100 million that
+24:05
+that will in you will you will need to wait more. So, I will wait for this to finish and I will come back. I am back
+24:12
+and as you can see training the tokenizer took 1 minute 51 seconds. Now,
+24:18
+we can inspect the vocabulary. The tokenizer has this vocab field. If I run
+24:24
+this, it will give me the content of the vocabulary. These are the tokens that we will use to encode the the sequence of
+24:32
+text. And here, the great thing about this is that it was able to pick up my name because it was occurring a lot in
+24:39
+the data in the data set that I have. So, as you can see, um this is this is this is promising. So make sure to to
+24:47
+look at the the vocabulary just to make sure that there are no problems and then
+24:54
+you can continue. So here we can test the tokenizer. Here I have this simple
+25:00
+string and as I said here I am using the dian language but you can do you can change this to to your language if you
+25:08
+like. Just make sure that the data set that you started with contains the same
+25:13
+characters. For example, if I if I speak Chinese and I used a data set that
+25:19
+contains only Chinese characters, then if you use other characters, if you want
+25:24
+to use that encoder to encode English text, it will not work because the tokenizer has not seen any English
+25:31
+characters. Okay? So, make sure that you use the tokenizer for the spe the specific use case that you are trying to
+25:39
+to solve. So if I take this string and encode it, it will give me this list of
+25:46
+tokens. So I can take this. This is exactly what I did. And I need to make sure that if I decode the same list, I
+25:54
+should get the the string that I started with. And this is exactly what we what
+26:00
+we got. Now let's continue. Here in this section, I am talking about special
+26:05
+tokens. I am going to add them to my vocabulary. Why? because I will need to
+26:10
+use them in the finetuning step. I know we we did not reach that step yet, but
+26:18
+this is very important. We need to have this because the model will use these
+26:24
+tokens in the finetuning step. You can see that here for example, we have this token that is called end of text. This
+26:31
+if the model outputs this token, it will stop generating tokens. Currently if we
+26:38
+train the model we will get a base model. It will never stop from generating tokens. Why? Because in the
+26:44
+data set we don't have this token. But in the fine tuning step we will create a
+26:50
+data set that will contain these special tokens to train the model to stop for
+26:57
+example generating the response or to use the start and end of text. We have
+27:03
+this separator. If it encounters characters that has never seen, we will use the unknown token. So this is why we
+27:11
+need to add these special tokens. So let's just do that. You can see that
+27:17
+here you have this special tokens field from the tokenizer. We can basically
+27:23
+just give it a dictionary. And we will we will make sure to save the the
+27:29
+tokenizer. This is the last step so that we don't repeat these steps every single time. And here what you can do so you
+27:36
+can take the tokenizer and encode the sequence text. I did that and I got
+27:43
+618,000 tokens. This is very it's not that bad, but if we could add more that
+27:50
+will be even better. And this number we are going to use this in the training
+27:56
+and validation steps. If you are familiar with open source large language
+28:01
+models, you will see that they were trained on a big chunk of the internet
+28:06
+and the training set contains trillions of tokens. But because this is a small
+28:12
+project, I mean having 618,000 tokens, it's it's not that bad. So when we start
+28:18
+training the model, we will see if this is enough or not. The last step as I said is saving the model. Here I have
+28:25
+created a new folder inside the output directory. And here we have the
+28:32
+tokenizer. And as you can see, minp was able to to add these special tokens that
+28:39
+we added manually as well as the the the other tokens. Okay, so we have
+28:45
+everything here and I will show you when we start training the model how to load
+28:51
+this tokenizer. We arrived at the end of this video. In the next one, we will
+28:57
+create the transformer model from scratch. See you next time. Hi everyone,
+The Transformer Architecture
+29:02
+I hope you are doing well. In this video, I will talk about the transformer
+29:08
+model and how do we use it to train it to learn language from the training data
+29:14
+set. The transformer architecture is used to train language models and it is
+29:20
+divided into two parts. We have the encoder and the decoder. For tasks like
+29:28
+machine translation, we use both parts. The encoder is used to encode the
+29:34
+sentence in the first language and the decoder tries to generate the
+29:41
+translation of that sentence based on the information given to it by the
+29:47
+encoder. But if you want to train an auto reggressive model to learn from the
+29:53
+data and to generate text that is similar to the data distribution then
+30:00
+use just the decoder. Now let's focus on this part of the transformer. The
+30:05
+decoder is composed of these components. First we have the token embedding layer.
+30:12
+This layer turns each token into a vector. In the table, you can see three
+30:20
+tokens and each one has its own vector with n values. Using vectors helps store
+30:29
+more details about each token, which is much better than using just one number.
+30:36
+Next, we use positional encoding to keep track of the order of the tokens. If I
+30:42
+take this sentence as an example and break it into tokens, each token gets a
+30:49
+value that shows its position. For example, high is the first token. So, it
+30:55
+gets zero, then one, etc. But again, instead of using just one number, we use
+31:01
+a vector to store more information. We will see this in the coding part. Now,
+31:07
+we reach the self attention mechanism. Its main job is to understand the
+31:13
+relationship between different tokens in a sentence. This is crucial in language
+31:18
+modeling because the meaning of a word often depends on the words around it.
+31:25
+Self attention helps the model focus on the most relevant words no matter where
+31:32
+they appear in the sentence. This allows the model to capture context and meaning
+31:38
+more effectively. We also have residual connections. These are important because
+31:44
+they help information flow smoothly throughout the network. Without them,
+31:49
+the gradients might become too small during training, making it harder for
+31:54
+the model to learn. Between layers, we apply layer normalization to keep the
+32:00
+model stable and improve learning. It helps by standardizing the inputs to
+32:07
+each layer, making sure they have a consistent range of values. Feed forward
+32:13
+or MLP layers are added to increase the model's ability to learn complex
+32:19
+patterns. We can combine the self essential mechanism MLP layers and layer
+32:26
+normalization into a single unit called a block. This block acts as a building
+32:32
+unit of the transformer model and we can duplicate this block multiple times
+32:38
+allowing the model to learn more complex patterns. Finally, we have the final
+32:44
+layers which are the projection and softmax layers. These layers help
+32:51
+convert the model's output into a probability distribution. This
+32:56
+distribution shows the likelihood of each possible next token. By sampling
+33:02
+from this distribution, we can predict the next token in the sequence. Now
+33:07
+let's talk about the parameters that we can set. The block size defines the
+33:13
+maximum sequence length that the model can handle as input. The embedding size
+33:19
+refers to the size of the vector used to represent each token. The number of
+33:27
+heads and head size are parameters used by self attention layer to process
+33:33
+different parts of the sequence in parallel. Lastly, the number of blocks
+33:39
+determines how many times we duplicate the block. Finally, before going to the
+33:45
+coding section, I highly recommend checking out the stat quest playlist and
+33:51
+Andre's video. These resources are invaluable and you will learn a lot from
+33:58
+them. I intentionally didn't go into too much detail because they have already
+34:03
+done such a great job explaining the concepts. Now, let's create our transformer model. Make sure to open the
+34:10
+third notebook in this series. Here we will start by loading the tokenizer.
+34:16
+Again we will use system so that we can access basic tokenizer from the root
+34:22
+directory. I already saved the tokenizer in the previous videos. So watch that if
+34:29
+you haven't. And here we are going to use the load method in order to load our
+34:34
+tokenizer. So let's do that. Now we have this helper function which is called get
+34:39
+vocab size. It will basically give us the size of the vocabulary. We will take
+34:45
+the vocab and special tokens and sum them up to get the vocab size. As I
+34:52
+mentioned in the slides, this implementation of the model was inspired
+34:57
+by Andre's implementation of the GPT2 model. If you want to watch that video,
+35:03
+then please click on this link. And before showing you the code, I would like to show you this part where I
+35:09
+explain visually how the transformer model handles the input. The first step
+35:15
+is word and position embedding. In this step, we start with a sentence. We use
+35:22
+the tokenizer to split this sequence of text into a sequence of tokens. Each
+35:29
+token has an ID in the vocabulary. For example, this one has 32, 59, etc. And
+35:36
+the shape of the sequence is 1 by 6. One refers to the batch size because we have
+35:42
+just one example. And six refers to the number of tokens. Next, we use these
+35:47
+tokens to find the corresponding embedding vector for each token.
+35:54
+Basically, this is a matrix. If we let's say that we have a ve a vocap size of
+36:00
+1,024 and the embedding size is 768. In this case, we will use for example,
+36:06
+let's take this token as an example. So this means that we will take the 1,00
+36:12
+row and take that specific vector. That vector is will be learned during the
+36:18
+optimization process to encode the doing token. And we will do the same here for
+36:26
+position embedding. And here you will notice that we have a difference. Here
+36:31
+we have 1,024 but here we have 256 because position embedding is tied to
+36:38
+the block size. And here this means that the model can only handle sequences with
+36:45
+up to 256 tokens. If you try to feed the model more tokens, that will not fit
+36:51
+because the matrix is small. After getting the token and position embeddings, we add them together. This
+36:59
+results in a tensor of size 1x 6x 768 where one is the number of inputs, 6
+37:08
+is the number of tokens, and 768 is the size of the embedding
+37:14
+vectors. This output is then sent to the block layer. The second step is the
+37:20
+multi head attention layer. Here we take that tensor that we got from the first
+37:26
+step and pass it to the multi head attention layer. This layer has two
+37:32
+settings. We have the head size and number of heads. These settings split
+37:39
+the attention block into smaller parts called heads. All heads process the
+37:47
+inputs at the same time. This is why we have so many arrows because each head
+37:53
+will process the input x independently and this calculation will be done in parallel. The goal of multi head
+38:00
+attention is to have the model focus on different parts of the input at once.
+38:06
+Each head can learn to look at different relationships between words or tokens.
+38:11
+Since they work in parallel, the model can understand patterns in the data more effectively. Each head produces a tensor
+38:19
+of size 1x 6 by 128 where six again refers to the number of heads. This time
+38:27
+it's not the number of tokens and 128 is the size of each head. We then
+38:33
+concatenate the vectors to end up with this sensor of size 1x 6x 768. And as
+38:40
+you can see, I tried to color each row to indicate the different heads that
+38:45
+compose this tensor. Finally, this tensor is passed through a feed forward
+38:52
+layer which adjust the last dimension to 768 matching the embedding size. In this
+38:59
+example, I did the calculation to have 768 here. So there is no need to add the
+39:04
+feed forward layer. But if this value was different, then we have to make sure
+39:11
+that this value matches the first tensor because we are going to use the number
+39:18
+of layers to duplicate the blocks. And we want the output of one block to be
+39:24
+the same as the input to the other block so that we can stack them sequentially.
+39:29
+Finally, we arrive at the prediction layer. Here I try to condense all the
+39:35
+previous steps in these three dots. Here is the input sequence and here is the output. After the final attention block,
+39:43
+the output is passed to the prediction layer. This layer contains a dense layer
+39:49
+that reshapes the output from 1x 6x 768 to 1x
+39:56
+6x,024 and 1,024 is the vocabulary size. Why we are doing this? Because in the
+40:03
+end, as you can see here, we get a probability distribution. We might get different probability distribution
+40:10
+depending on what we give the model as input. So this is what I try to draw
+40:16
+here. And this allows us to sample from the probability distribution to get the
+40:21
+next token in the sequence. I hope that you found these visualizations informative. I tried to create them to
+40:28
+show you the steps visually because it will help you understand the concept instead of just looking at the code
+40:35
+because you can find the code online. There is no problem with that. Transformers are not well understood. So
+40:42
+I I wanted to pay more attention to what goes under the hood. So let's start let's start looking at the code. First
+40:49
+let's define the hyperparameters. We are setting the seed to this value to make
+40:55
+sure that the results are reproducible. Then we set the plug size number of embedding etc. Here we are getting the
+41:02
+vocab size and finally we set the device. Here torch would see if you have
+41:08
+a GPU. In my case I have a GPU so I'll be using that. But if you don't have it
+41:15
+then torch will fall to use a CPU. If you have a GPU then that would be great
+41:21
+because the training would be faster. But if you have a CPU then training will
+41:27
+take a lot of time. In that case if you don't have a GPU then you can go to
+41:32
+Google Collab and use the the GPU that they give for free. It's a powerful GPU
+41:38
+that will help you train the model. Now let's start here. I'm I'm strangely
+41:43
+starting from the head class because it's it's not easy to to go to show you
+41:50
+the the word embedding layer first because that one will be used in the
+41:55
+full implementation. But let's start with the head layer. The head class
+42:00
+represents one attention head in a self attention mechanism. It has three
+42:06
+tensors. They are called key, query and value. These are used to help the head
+42:15
+layer understand relationships between words. The query represents what each
+42:20
+word or token is looking for. The key tensor represents the meaning of each
+42:27
+token and finally the value carries the actual information of each token. You
+42:35
+can see that these are linear layers which means that these tensors are learned during the optimization process.
+42:43
+The forward pass works by first projecting the input into these three
+42:50
+representations. You can see that we are taking X and projecting that to get K
+42:56
+etc. we get Q and finally we will get we will get V also here. Then we compute
+43:03
+the attention scores which are which Andre called affinities to prevent the
+43:08
+model from looking ahead in a sequence. We apply this triangular mask. After
+43:15
+masking the scores go through a softmax layer to turn them into probabilities
+43:21
+and then we use dropouts to prevent overfitting. Finally, the attention
+43:26
+weights are used to combine the value vectors producing the output. As you can
+43:32
+see, it's it's really difficult to explain to you the code without running it. So, what you need to do is either
+43:39
+run this to basically verify that the shapes are correct or what you can do is
+43:44
+just watch the video that I shared with you here, this one. You can click on this or the links that I shared in the
+43:52
+slides to see Andre's video because he explained this very well and I I don't
+43:58
+want to spend too much time on this part because what you need to know is is the different layers that compose the
+44:05
+transformer model and we have these hyperparameters that we can tweak so
+44:10
+that we get we get to change the the size of the model but I'll do my best to
+44:16
+explain this in simple terms. The multi- head attention class extends the concept
+44:22
+of self attention by running multiple attention heads in parallel. Instead of
+44:27
+using just one set of queries, keys and values, it creates multiple independent
+44:33
+head instances. We are doing this here. So as you can see we have we are looping
+44:39
+over the number of heads and instantiating um each object independently and we are
+44:45
+feeding that to the module list to be able to run these heads in parallel. And this is exactly what we are doing in the
+44:52
+forward pass. You can see that we have this for loop. We are looping over the heads and we are feeding the input to
+44:59
+each head independently and after that we concatenate the the output from each
+45:04
+heads. Finally, we project that to the we have this projection layer which will project the output of the of this
+45:12
+concatenated to tensor into the number of embedding to be able to as I said
+45:18
+before to link the blocks sequentially and finally we use dropout to prevent
+45:24
+overfitting because the model will be big and because we don't have a lot of data we need to make sure to prevent
+45:30
+overfitting. Now we have the block class. This one will use the feed forward. So I'll I'll come back to it.
+45:37
+The block layer combines the self attention and feed forward layers. First
+45:44
+you can see that here we have the self attention. Basically it's the multi head attention class that we explained
+45:50
+before. And before applying the self attention to the input we are applying
+45:55
+normalization. Here you have two choices. You can either apply the layer norm before or you can apply it after
+46:03
+the self attention if you want. And after applying the self attention, we will feed the result to the feed forward
+46:11
+network. And here's the how the network looks like. It's simple. Here we use the
+46:17
+linear layer to make the feed forward network wider because we want to add
+46:23
+more parameters. We want to make the model we want to let the model learn complex patterns and finally we end up
+46:31
+with a we add a dropout to again prevent overfeitting and this is the content of
+46:36
+the block and you will see that in this final class which is the GPT language model here we are going to basically
+46:44
+assemble all those components to form our transformer model so let's see so
+46:50
+this is why I did not start with the embedding and position tables. Although this is the the input of the transformer
+46:57
+model because uh we added this in this GPT language class and we had to explain
+47:03
+the the first the previous ones before we arrive at this one. So we have here
+47:08
+we have the token embedding table. Let me go to the forward because to the forward method to help you understand
+47:15
+this. So we are going to take the input tokens. Remember the input tokens are
+47:21
+basically we cut them after transforming the sequence text by the tokenizer. So
+47:26
+this is the input. We feed this to the embedding table in order to get the
+47:32
+associated vector for each token. We do this same thing for positional encoding
+47:38
+and we add them to get the X tensor which is going to be fed to the other
+47:44
+layers. And here as you can see we are going to feed that to the blocks. And if I go to the top you can see that the
+47:51
+block is basically a sequential layer that will assemble all the blocks. And
+47:57
+here you can see that we have the number of layers. So this will determine the number of blocks to use. So here we are
+48:04
+instantiating the block object with number of embedding and the number of
+48:10
+heads. And this is exactly what we did here in the forward pass. We are feeding
+48:16
+the input to the blocks. So we finished. Now we arrive at the final layer. So
+48:22
+here we are applying a normalization before going to the to the final layer
+48:28
+which will project the output dimension to be of shape batch size sequence
+48:36
+length and vocab size. And if I go back, you'll see that this is basically a just
+48:41
+a simple linear layer. That will reshape the last dimension from embedding size
+48:47
+to vocab size instead. And finally, we return, let me go back. We return the
+48:53
+logits and the loss. From the logits, we can sample the next token. And the loss
+48:59
+will help us optimize the weights of the model during optimization. And here this
+49:05
+class has the generate method which takes the input tokens and the new
+49:11
+tokens that we want to generate from this input sequence. So basically here we are going to get the input feed it to
+49:19
+the model get the logit we don't we don't care about the loss and we will keep appending the logits to the input
+49:26
+and finally return the the final layer or the final output with the first input
+49:33
+tokens and the new tokens that we generated. Now let's create our model and move it to the device. We are going
+49:41
+to use this to calculate the number of parameters. Currently we have 12 million
+49:46
+parameters and this is not the final value in the next video where I will
+49:53
+start training the model. I might change this. So this is just to show you that the that we don't have any errors while
+50:00
+defining the GPT language class. Also it's a good practice to test the forward
+50:06
+pass with a dummy input. Here we are creating. So this you can see if I take
+50:11
+this let's run it here and let's look at the shape of the tensor. So it's 1x six.
+50:17
+Why? The batch size is just one and the sequence length contains six tokens. And
+50:22
+here we are generating random values that that goes from zero to vocab size
+50:27
+minus one. So let me delete this cell. We don't need it. And finally after getting the input tensor we are going to
+50:35
+again feed it to give it to the device because we need to make sure that both the model and the tensors are on the
+50:42
+same device in order to make to to do the calculation. And finally we give the
+50:48
+we give the model this input. And if we print this you can see that we get
+50:54
+a,00032 and the loss is none because we did not give the the model the target
+51:00
+tensor. Finally I have two helper functions that will help you print the
+51:06
+model layers if you want. So this paint model structure it it will print the the
+51:12
+layers in this treel like format. Let me click on text editor. So you can see that we start from the token embedding.
+51:19
+Then we go to the position. Here are the blocks. So this is the first block. This
+51:24
+is the second block etc. And at the end uh after the fifth block we will arrive
+51:31
+at the final layer. And you can see also the parameters of each layer independently. You can use this one. Let
+51:39
+me run it again. Yeah, it's working. and or use this one because this one will
+51:44
+use pandas in order to provide to to generate this data frame. And here it
+51:50
+shows you the same thing. It shows you the layer, the type and the number of parameters of each layer independently.
+51:57
+And you can click on these arrows. Maybe you will you will have a different output. Here I am using a an extension
+52:04
+called data wrangler. Let me search for it. Yeah, I'm I'm using this extension
+52:10
+and I think it helps show the the data frame in a nice way. That's all for this video. I hope you enjoyed watching it.
+52:17
+In the next one, we will begin training the model and I'm really excited to dive into that. See you then. Hi everyone. In
+Pre-training
+52:25
+this video, we will train our transformer model. I will explain the
+52:31
+training process, share best practices, and show you how to avoid common
+52:36
+mistakes that can stop your model from learning. This video has two parts.
+52:42
+First, I will go through the slides and then we will train the model together.
+52:48
+Training a neuronet network follows these steps. First we use the tokenized
+52:54
+data and split it into two parts training and validation. From these we
+53:01
+create data loaders which feed the model batches of data during training and
+53:09
+evaluation. Next we set the training parameters like the number of
+53:15
+iterations, learning rate and optimizer. We also save the model regularly for
+53:21
+example every 100 iterations and also don't forget to save the model at the
+53:26
+end of training. Finally we evaluate the model and repeat the process because
+53:32
+getting it right on the first try is difficult. Now let's talk about data
+53:38
+loaders. As I mentioned earlier they are used in both training and evaluation and
+53:44
+we can set them up in two ways. The first method selects a random batch of
+53:50
+data in each iteration while the second method processes all batches in one
+53:56
+iteration. Let's compare these two methods with an example. Suppose that we
+54:01
+have 4,000 batches in our training set and each batch contains 64 samples and
+54:10
+let's say that we train for 1,000 iterations. If processing one batch
+54:15
+takes about 30 seconds, we can calculate the training time. In the first method,
+54:21
+we will take a,000, multiply it by one because we have just one random sample
+54:27
+that we selected, and we multiply that by the time it takes to process that
+54:32
+batch. This will give us 8.33 hours. In the second method, we will multiply that
+54:39
+by 4,000 because we want to process all batches in each iteration. If you do
+54:45
+this, then you will get 1,388 days. You see, this is why I
+54:51
+showed you both methods because you need to find a balance so that training does
+54:56
+not take forever. The second method is the ideal method because it ensures all
+55:03
+trained data is used but it is not practical. I mean you need to have a very powerful computer to be able to
+55:09
+process all that amount of data. The first method is faster but might not use
+55:15
+all data evenly. Some batches will be favored even though we are using random.
+55:21
+Some batches are not going to be used. So you need to find the a balance. Let's talk about the training loop. You should
+55:28
+adjust parameters like model size and batch size to make the best use of your
+55:34
+GPU memory. Ideally, GPU usage should be around 90% or more, but not too close to
+55:42
+99% to avoid running out of memory. Here, for example, I have 8 GB in on my
+55:48
+VRAM. So, if I could build 7 7 and 1/2 GB, that will be great. How do you
+55:54
+figure out the optimal batch size that your GPU can handle? Well, it's easy.
+55:59
+First, start with a small batch size. If the GPU can handle it, then stop the
+56:04
+training and increase the batch size. Keep increasing it until you find the highest batch size your GPU can handle.
+56:12
+Also, remember to save the model regularly and monitor the loss. Tracking
+56:18
+the loss is very important because it shows whether the model is underfitting,
+56:24
+overfitting or training well. Here in the first graph we see that the model is
+56:31
+underfitting because the loss was not improving and it's stagnated while on
+56:36
+the far right the model is overfitting because the validation loss is increasing. So the ideal situation will
+56:44
+be this one. The training loss should decrease over time and the gap between
+56:50
+training and validation loss should stay small. After training, test the model by
+56:56
+generating text and evaluating the response. If you are not happy with the
+57:01
+results, don't worry. Just repeat the process and adjust different settings.
+57:07
+This is how deep learning works. It's rare to get perfect results on the first try. you have a lot of hyperparameters
+57:13
+that you can adjust. So just repeat repeat the training process until you find satisfying results during
+57:21
+evaluation. Check if the model can produce clear and meaningful text. This
+57:26
+is the important thing. If the model can produce coherent text, then you are good to go. The model does not need to be
+57:33
+perfect at this stage because this is just the pre-training step. The goal
+57:38
+here is to make sure the model understands the language you are
+57:44
+training it on. Later, we will fine-tune it to make it more useful. Ready? Let's
+57:50
+start coding. Before showing you the code, I want you to go to my GitHub
+57:56
+repository and pull the latest changes because as I said before, I am regularly
+58:02
+updating the the repository. Whenever I make a video, I try to push the notebook and the slides. So please pull the
+58:09
+latest changes so that you get these two notebooks. So open notebook 41 model
+58:15
+training all batches. Both of them are similar. There is just a change in how the data loader works. So let's look at
+58:22
+the first one. Here we are loading the tokenizer. Let me run this. We have seen this before. So let's go fast. Here make
+58:29
+sure that the tokenizer that you train the tokenizer. Here we are loading it. We have the get vocab size to basically
+58:37
+give us the size of the vocabulary. And now we are going to create the model. Here I did something else. I have
+58:43
+created a script inside transformer. We have the model. Basically instead of
+58:50
+putting this in the notebook, I made sure to put it in a script so that we can load it easily. And here we are
+58:56
+going to give the GPT language model constructor some variables that it can
+59:02
+use when instantiating the model. And this is exactly what we did. So you can see that I imported the GPT language
+59:09
+model class from the model scripts. And here are the hyperparameters that I am
+59:14
+using. Here I am just showing you the notebook that will train the model. You will see uh later in the video that I
+59:21
+will make a lot of tries. So I'll I'll change these values regularly. So after
+59:27
+creating the model I am passing it to the device and this is going to be
+59:32
+computed automatically by torch. So if you have a GPU we will use CUDA. If you
+59:38
+don't have it then it this will fall to use a GPU. So let's run this. And here
+59:43
+it shows me that I have a very small model just for demonstration purposes. After creating the model here comes the
+59:50
+data preparation. Let's load the combined text. Remember, we will load
+59:56
+this sequence of text and we will use the tokenizer to embed it and this will
+1:00:02
+give us the number of tokens that we have in the data. So, let's wait for this to complete and then I will come
+1:00:09
+back. I am back and as you can see we have 618,000 tokens in our data set. Now,
+1:00:16
+let's split it into training and validation splits. Here first we are converting the encoded text sequence
+1:00:24
+into a tensor of numbers. So if you want to have 95% of the data as training then
+1:00:31
+put 0.95. If you want to keep it like this keep it like this. And here we are
+1:00:37
+splitting the data into training and validation. Let me run this. And here
+1:00:42
+comes the data loader. Here we are using all batches. So here we have this text
+1:00:48
+data set. We are giving it the data and the block size. The block size controls
+1:00:54
+the maximum input that the large language model can accept. If you set
+1:01:01
+block size to 256, then that means that you cannot
+1:01:06
+feed an input with more than 256 tokens. That will fill the context window and
+1:01:13
+you'll not be able to to compute the answer. So, make sure that the input
+1:01:18
+says below below or equal this value. Here, get item, we will give it an index
+1:01:23
+and it will give us the two pairs X and Y. And here we will just give it a an
+1:01:29
+index and it will add the block size so that I I get the input X and I'll
+1:01:34
+predict the next token in the sequence. So this is what get item does and we are
+1:01:40
+going to use this text data set inside the get data loaders method and this one
+1:01:46
+will give us both the train training loader and the validation data loader.
+1:01:52
+So let's see how this works. Here we are creating an instance two instances of the text data set class. And here we are
+1:02:00
+giving it the training data as well as the block size. And here you can see that we are moving the the tensors to
+1:02:07
+the device. After getting the training data set, we can create the data loaders. You give it the data set, the
+1:02:14
+batch size and shuffle. Make sure that shuffle is equal to true so that we randomize the data. We are doing this
+1:02:20
+just for the training because this will be this will be used to optimize the model. Whereas in the validation data
+1:02:28
+loader this is set to false because we are not going to use the validation data loader or the validation data to
+1:02:35
+optimize the model. We are using this just for evaluation purposes. So run this and here we can test this just to
+1:02:42
+make sure that it is working. So we are getting the training and validation data loaders from the get data loaders method
+1:02:50
+and we are using the next method to basically get a batch and after printing
+1:02:55
+the shape here the batch size is 128 while the block size is
+1:03:01
+512. So let me run this. Okay, so it is working great. We arrived at training.
+1:03:07
+So here first we want to estimate the loss. This is going to be used in order to plot those loss curves that we s that
+1:03:14
+we have seen in the slides. So first put the model in evaluation mode because we
+1:03:19
+are not going to compute gradients. Then for each split. So we are going to do this for both training and validation.
+1:03:26
+We are going to compute the loss. And here because we have so here we need to
+1:03:32
+use evaluate this this uh this integer that I called evaluation iterations.
+1:03:39
+Why? Because we don't want to go through all the data through all the batches
+1:03:44
+that we have in the validation in the validation set because this will slow the training process. We just want to
+1:03:51
+get a sample from the validation data and run the model on it and get the loss
+1:03:58
+value. So what you could do if you want to have the validation be computed on
+1:04:04
+all batches in the validation data then remove this and calculate the loss on
+1:04:10
+all batches. But if you want the training to be a bit faster then add
+1:04:16
+this value and provide it to the estimate loss method. So we are calculating the loss in for each batch
+1:04:23
+and after that we are calculating the mean. Finally, before leaving, make sure to set the model to train because we are
+1:04:30
+going to resume training. And finally, we return the the loss that we put in the output dictionary. So, make sure to
+1:04:38
+run this cell here. Save checkpoint. So, this is very important because let's say that you are training the model for
+1:04:44
+10,000 iterations and something malfunctioned and the training stopped for some reason. So, at least you you
+1:04:51
+have saved the model multiple times during training. So don't wait until the
+1:04:57
+the last iteration to save the model. No, make sure to save it regularly during the training process. And here
+1:05:03
+basically we are using the save method from torch to save the checkpoint. Here are saving multiples things. So we are
+1:05:10
+saving the epoch the state dictionary. This is very important for both the model and the optimizer and the last
+1:05:17
+value for the loss. So run this. And now here comes the training loop. So as you
+1:05:23
+can see I already done this but let's see let's see how it looks like. First we have some parameters that we can
+1:05:29
+tweak the m the number of iterations. This is the epoch. So I I have called
+1:05:35
+iterations evaluation interval. So this means for every 10 epochs we are going to use the estimate loss function to
+1:05:43
+compute the value. This is what we are getting here. So you can see that in the first iteration we computed the loss.
+1:05:50
+after 10 iterations we are evaluating the model and so on. So this is what
+1:05:55
+eval interval is used for. Eval iteration as I told you it's going to be
+1:06:01
+used by this one basically to limit the number of batches that are going to use to be used to calculate the loss. But if
+1:06:08
+you don't want to use this then remove it from the estimate loss function entirely. The learning rate will be used
+1:06:14
+by the to by the optimizer. And here we are using Adam. Finally we are getting
+1:06:19
+the training and validation loss again. um data loaders. Again here we have two
+1:06:25
+arrays to keep track of the loss during training so that we can plot it down
+1:06:30
+below. And now we start. So for each iteration and for each batch in the
+1:06:35
+training data because this one is all batches. So we need to use all batches
+1:06:41
+in the data in each iteration and this takes a lot of time to complete. First here this one is just for evaluation but
+1:06:48
+let me collapse this and start with the training. So you give the model the X and the target. It will give you the
+1:06:54
+logist basically the the probabilities. Here you compute the gradients and perform the optimization. After that in
+1:07:02
+this block we are going to evaluate the model. So if this condition is valid we
+1:07:09
+are going to use the estimate loss function and we are going to append the the loss for train and validation in
+1:07:16
+these two lists. And we have this print statement just to print this so that we can see the the values while the model
+1:07:24
+is training and to intervene. If we see that the validation loss is starting to go up, it should be safe to stop the
+1:07:31
+training because the model is degrading. It's it's not improving. And finally, we save the model after each in each
+1:07:39
+iteration. So if I close this, you can see that when I finish working on all the the training batches, I will save
+1:07:46
+the model. After training, I have this so that I can plot both training and validation loss. And as you can see, the
+1:07:53
+model was doing good. But I stopped it because uh I was just creating the notebook. But this is what you what you
+1:07:58
+should see when training the model. Both train and validation loss should go down
+1:08:04
+over time and the gap between them should be minimal. Finally here if you
+1:08:09
+want to test your model you can basically give it an input and use evaluation again we don't want to
+1:08:16
+compute gradients and use the generate method and finally decode tokens so that
+1:08:22
+you get the text back so this is similar to what we have here but if I scroll
+1:08:28
+down to the data loader section you can see that is it is very simple you are just going to get a split so do you want
+1:08:36
+to get the training split or the validation split and we are going to use that to get the data and finally we are
+1:08:42
+going to basically get a random a random index with tort random integer and get x
+1:08:49
+and y and use that in the training loop. So if I scroll down to the training you can see that the estimate loss is the
+1:08:55
+same checkpoint is the same but here you can see that let me collapse this. This
+1:09:01
+time we are iterating just over the max iterations. There is no need to iterate over the data loader because we are
+1:09:07
+getting random batches each time. So here we use the get batch method and
+1:09:13
+because we are training the model we will use the training split and this gives us X batch and Y batch but
+1:09:19
+randomly. So here this one is faster but you will run into issues because
+1:09:24
+sometimes some batches are not going to be used in the training because this is a random process. So you need to
+1:09:31
+increase the number of max iterations so that you you make sure that the the random process will use all the the
+1:09:37
+batches. So basically this is the only difference between the first and the second notebook. But the the rest stayed
+1:09:44
+the same. So here we plot the losses and we generate from the model. So this is
+1:09:50
+what I wanted to show you in the first part. In the second one I will start training. I'll start playing with these
+1:09:55
+hyperparameters and see um if the model will learn the the the dera language and
+1:10:01
+hopefully it does and um then if this works and I will show you that this is
+1:10:06
+not very easy to get the model to work from the first try but I'll show you how
+1:10:12
+to follow the process that I showed you in the slides to get good results. So I started training the
+1:10:19
+model. I kept the first hyperparameters like this. So that gave
+1:10:24
+me a model that contains 0.5 million parameters. This is very small and I
+1:10:30
+think the model will underpit but let's see. So I kept this these things the same. And when I came to training you
+1:10:36
+see that the model is doing good. So the loss started at around 6.9 and at the
+1:10:41
+end it reached 4.7 and the gap between the training and validation validation
+1:10:47
+loss was very small. So here we have 4.7 and here we have 4.9. So 0.2 difference.
+1:10:53
+It's not that big. And if we plot the training and validation loss, you can see that the the loss was decreasing
+1:11:01
+steadily, but you can see that it's stagnated and it will not go down. And this is very similar to the plots that I
+1:11:07
+showed you in the slides. And this shows that the model is underfitting. And we were expecting this because the model is
+1:11:13
+very small. We have a lot of data. So the model is not able to to learn more. What we should see if we increase the
+1:11:20
+model this should decrease. So the loss should decrease maybe to around here. It
+1:11:26
+will also stagnate. After that we will increase the model the model size even further and see when the model will
+1:11:33
+overfit. So at a certain point the model will be so big because we have and because we have a small data set the
+1:11:40
+model will overfit that data. Let me do another run. This time I will change the hyperparameters to increase the size of
+1:11:47
+the model and I'll come back and I forgot to say that I am using the random batches approach because this one is is
+1:11:53
+faster to to train the model. But later I'll go back to to the all batches
+1:11:59
+method and try it try it out also. And before I finish this part, I also want to say that when I generated some tokens
+1:12:05
+from the model, I see that it is not it is not good. And this matches what we see in the training loss. The model
+1:12:11
+didn't learn a lot from the data. This is why the generation isn't that great.
+1:12:17
+Here are the results from the second training run. And as you can see again, the model was underfitting. If I put
+1:12:24
+this here and the first run here, you can see that they are similar. But here
+1:12:29
+the model the loss was lower. But you can see that the loss stagnated. So the
+1:12:35
+that means that the model did not improve a lot from what we did before. Also the generation wasn't that great
+1:12:42
+and here the model is three times bigger. So here we have 1.5 million parameters but because the number of
+1:12:49
+players is just one that means that we don't have a lot of parameters. So the model will not be able to learn a lot.
+1:12:56
+So what what I will do now I will increase this to let's say three. Let me see how this this will give me three
+1:13:03
+million parameters. So let's increase that to four. And also something very important is the embedding. If we let
+1:13:09
+out change that to 768, this will increase the size of the model a lot. Why? Because we are going to So this
+1:13:16
+means that each token will be represented by a vector of size 768. If the vector is is big, this means
+1:13:23
+that we will store a lot of information for each token. And this is why the size of the model jumped a lot to 30 million.
+1:13:31
+So now let me see. So I'll also decrease the batch size because the model will take a lot of memory if I try to load it
+1:13:38
+on my GPU. So let's just do this. Let's keep this to let's use 30 million. Here
+1:13:44
+we have four layers. The number of head. So this will not change the the the
+1:13:49
+parameter size. So you can see that it does not change. It will just have multiple heads. The block size controls
+1:13:56
+the max input dropouts. This one is used for overfitting. So I'll just decrease this to 512. So this will give me 30
+1:14:03
+million. And then I just want to go progressively just to see if the loss will go down and if the model still
+1:14:10
+doesn't have a lot of parameters to learn more then I'll keep increasing the embedding size. So I will I'll keep
+1:14:16
+this. Uh I also want to show you that the checkpoints are here. So make sure to create folders inside the output
+1:14:24
+folder so that the checkpoints are saved correctly. So this is great. I'll just duplicate this because I want to keep
+1:14:31
+those graphs just to show you at the end how those parameters affects the model training. So let's call this train. Here
+1:14:38
+I have block size 512. I think it's I think these are these are enough. So now
+1:14:43
+I'll just go back to this one. Let me show you what I have here in ghost. You can see that the model was taking six GB
+1:14:49
+before. So I'll just free the memory. Restart the notebook. As you can see now we read the memory. Here I am using OBS
+1:14:57
+to record. This is why I am using a little bit of memory. Let me close these because I no longer need them. And here,
+1:15:04
+so I'll keep these parameters. I will go down to the training loop and I want to change some things. So here I will
+1:15:11
+change the the learning rate to 3 E minus 4. I want to increase it a little
+1:15:16
+bit. I want to keep the max iterations to a,000. And here I need to make sure to change the folder to run number
+1:15:23
+three. This is the third run. I forgot to save the second run, but that doesn't matter because the model was not great.
+1:15:30
+So, let me create the new folder and everything should work. So, I'll train the model and I'll come back. I have
+1:15:37
+finished the third training run. Here is how the training and validation loss
+1:15:43
+functions looks like. I have copied both images from this run and the previous one and I have them here in Inkscape
+1:15:50
+just to see the difference. You can see that both of them started as a loss of
+1:15:56
+seven. But then you can see that here we quickly reached 4.9 in the previous run.
+1:16:02
+That took us 40 evaluation steps. So that took us a lot of time. So with this
+1:16:08
+big model, we were able to decrease the loss quickly. But after that, the the loss stagnated again. What I will do now
+1:16:16
+because increasing the size of the model did not help. So I'll stop using the random batches approach and use the all
+1:16:24
+batches approach. This one will take a lot of time but what I will do instead of having 100 iterations I'll just keep
+1:16:32
+one iteration and here I'll loop over all the batches and hopefully this one
+1:16:37
+will work. So I will name this run number four. Let me go back or first let
+1:16:44
+me go to the previous notebook. I need to free the memory. So let's click on restart. I'll close this. I'll go to the
+1:16:50
+top. And here let me change some values. So I'll keep the batch size small. I'll
+1:16:57
+use 32. Here the block size, let's make this small to 56. The embedding size
+1:17:03
+I'll use 512 for now. Number of let's increase the number of layers to six.
+1:17:09
+Let's see what this will give us. So this gives us 20 million. This is big. So I'll decrease the number of heads to
+1:17:16
+six. Oh, let's increase the value. I don't want to decrease the number of embedding or the embedding size because
+1:17:22
+if I decrease this, yes, the the model size will decrease rap quickly. But I want to have a sort of big embedding
+1:17:31
+vector for each token. So let's keep this as 512. I'll keep this to six
+1:17:38
+layers. And here I have to decrease the batch size to I think 16 or 24. So let's
+1:17:45
+try 16 first and see if this will fit. So currently we have 20 million parameters. But actually let's try
+1:17:51
+something. I'll decrease the number of layers to four. I'll keep the batch size 32. We have 30 million parameters. This
+1:17:58
+is exactly what we had before. And now let's train this just to see if the loss
+1:18:03
+will decrease or not because it stayed at 4.7. So I I would like to see the loss
+1:18:10
+keep going down because this is underfacing. It's not the model is not learning from the data and my assumption
+1:18:16
+is that by using random batches that did not help our model. So let's give the
+1:18:21
+model all the batches and see if that will help it generalize better. So I will run this training run and I will
+1:18:28
+come back with the new results. This is the fourth run. I guess I have finished
+1:18:34
+training the model for the fourth time and as I said this time I used all
+1:18:39
+batches. This method is really awesome and I think it's the one that we should
+1:18:44
+use from now on. Why? Because let me show you. So the model stayed the same.
+1:18:50
+This is the size. It's 13 million parameters. We encoded the data. Here is the data loader. So this time during
+1:18:57
+training we were iterating over all where it is. Here it is. We were iterating over all the batches in the
+1:19:05
+training loader. And as you can see because I have a lot of data here. I have 8,700 steps almost and the the
+1:19:13
+training loss was doing good. Let me show you the graph. It looks interesting. If you remember in the slides I showed you that if you see this
+1:19:20
+this means that the model was overfitting. But this is exactly what we need. I mean you will be confused right
+1:19:25
+now. Why you say why why are you saying this? Let me explain. First the loss that you see here was not computed over
+1:19:32
+all batches in the training data set or in the validation data set. Remember if I go back to estimate loss, you see that
+1:19:39
+we have this variable that controls how many samples that we take from the data
+1:19:45
+loaders. If you want to get the accurate loss value, you should remove this. I said that this will increase the
+1:19:52
+training time, but this will give you the actual values. I kept this just so
+1:19:57
+that I don't slow down the training. But if you estimate the loss every 100
+1:20:03
+epochs that will not that that will not cause a lot of problem. So it's safe to remove these if you want. Also let me go
+1:20:10
+back to the training to the graph. You can see that here let's say that evaluation iteration that variable was
+1:20:17
+200 and I have more than 8,000 batches. And you can see that I have just one
+1:20:23
+iteration. I intentionally set max iteration to be one and I just went over
+1:20:28
+all the training samples and optimized the model. So those 200 samples the
+1:20:34
+model has seen them just once. So it did not overfit on those samples. So you can
+1:20:40
+see that the training loss went down. But it doesn't mean that the model saw those 200 samples more than once. It has
+1:20:48
+only seen them once. And this is promising. It's really awesome. Here the validation loss was going up. Why?
+1:20:55
+Because let me go back to how we split the data. So you can see that here we used the index. So whatever comes after
+1:21:02
+this we will take it as a validation data. Here here comes the problem. My model is not a model like chat GPT or
+1:21:10
+Gemini or the the other general models. So those are trained on the whole internet and they are expected to know
+1:21:17
+everything because those are general models. So if you have for example coding samples in the training set, you
+1:21:24
+should have coding samples in the validation set. But my model is simple.
+1:21:29
+It is trained just to learn the der language but specifically to mimic me or
+1:21:35
+another person. So here my data set contains conversations between me and other people. we could have in the
+1:21:42
+validation set conversations with between people that are not split
+1:21:47
+between the training and validation set. So this is why what we might see in the
+1:21:53
+let's say that in during training I was talking with people about let's say programming computer science but in the
+1:22:00
+validation set I was speaking with people about let's say football and something else that is not related to
+1:22:06
+the training set the model will not be able to to generalize why because in the
+1:22:12
+training set we have just samples that are related to programming and and
+1:22:17
+computer science so this is intentional So I wanted the model to be able to learn from the data as much as possible
+1:22:24
+and to be able to model the DA language. I will also experiment with removing the validation data set and keep one data
+1:22:32
+give it to the model and see at the end if it is able to learn the DA language and let's go and see the the the
+1:22:39
+generation. So here um excuse me if you don't know the dish language but those
+1:22:45
+that understand it people from Roco or Algeria will we'll see that the model is generating good text. Um so here let me
+1:22:52
+let me see. So this is the the input sequence. You can see that it is here and after that these are all these are
+1:22:59
+tokens that the model generated. You can see that it generates emojis. This is h
+1:23:04
+how we how we laugh if uh if we speak with with other people we keep pressing
+1:23:09
+h it's funny I know um what else I'll change this to say hello we say salam
+1:23:18
+salam labus so this means hello how are you and let me see what the model did
+1:23:23
+generate so hello how are you hello a so as I
+1:23:29
+said people from Morocco or Algeria would understand the text it is Perfect. But the model is using I'll say correct
+1:23:37
+words. It's not using random words like it was before. Actually, let me let me
+1:23:42
+go and open the notebooks that we started with. This is the first try. If I go to the generation um so this is the
+1:23:49
+text that we got. It's completely nonsense. So for those that understand
+1:23:54
+the dial language, we'll see the difference. Let me put them uh side by side just to see. So here is the fir the
+1:24:01
+before and here is the after it it actually worked. So this is why I said that if we you see this it does not
+1:24:08
+matter. In the slides I showed you that this is bad behavior because the model will not generalize and this is true if
+1:24:15
+you are training classifiers those classical models but with LLMs you want the model to learn as much as possible
+1:24:22
+because don't forget this is just a base model here is just completing the text the conversation is not meaningful. uh
+1:24:29
+it's not coherent but don't forget that we have a fine-tuning step. We will take this model and fine-tune it on a
+1:24:36
+conversational data so that the model is able to mimic me or other person. I'm
+1:24:42
+really excited and in the next episode I will show you how to form that data set and after that we will start fine-tuning
+Fine-tuning Dataset
+1:24:48
+the model. See you next time. Hi everyone. In this video, I will talk
+1:24:54
+about how to create the finetuning data set that is used to train the base model
+1:25:00
+further on a specific task in order to create an assistant. Let's see the details. As I said, this data set is
+1:25:08
+used to teach the base model to be good at a specific task. In our case, we want
+1:25:14
+this data set to teach the model to mimic the way a person talks. You
+1:25:20
+remember the special tokens that I talked about briefly in the BPE video.
+1:25:25
+We will use them in this part. The row data looks like this. We have a back and
+1:25:30
+forth conversation that we exported from WhatsApp as an example. This data will
+1:25:36
+be converted to this format. We start with the start of text token and then we
+1:25:44
+put the role in this case user. we put the separator token and after that we
+1:25:52
+put the user message and finally to finish the turn. So this is the user
+1:25:57
+turn we add the end of text token and we repeat the same thing but this time for
+1:26:04
+the other person that talks that responds to the user's answer. We will consider this as the answer that the
+1:26:12
+assistant should produce. We repeat the same process for the rest of conversation and at the end we form our
+1:26:21
+fine-tuning data. Here I want to highlight the user and assistant roles.
+1:26:26
+So here if you want to switch let's say that the user is the other person that I'm talking to and the assistant is me.
+1:26:34
+So if I want to the model to mimic how I talk then I'll put all my answers in the
+1:26:41
+assistant section. But if I want to mimic the other person that I'm talking to, then I will put the answers for that
+1:26:48
+person in this section. Something that you need to keep in mind is that this data set does not need to be big like
+1:26:56
+the pre-training data set. So it means that you can generate highquality data
+1:27:01
+manually and this will help boost the base model to train very well. Let me
+1:27:07
+show two examples of how to form the finetuning data set. Here is the first
+1:27:13
+and let me show you the second one. So we have the two examples in front of us.
+1:27:18
+Do you see a difference? In the first example, we have one message from the
+1:27:23
+user and a reply from the assistant and we consider this as a single example
+1:27:31
+that the base model will be trained on. On the other hand, in the second case,
+1:27:37
+we have multiple terms between the user and the assistant. So what's the
+1:27:44
+difference? The difference is that in the first case, we have no context because we have just one message and a
+1:27:51
+reply. And that reply, if we want the model to understand how to reply, well, then it needs to know the context. And
+1:27:58
+in the second example, we have a clear context because we keep the history of
+1:28:03
+the conversation. But if you want to use the second example, make sure that when
+1:28:08
+forming the data set that the input should always be less than the block
+1:28:14
+size. This is where the block size comes into play. In the previous section where
+1:28:19
+we trained the base model, we have fixed the block size to a specific value. So
+1:28:26
+if you want to use the second approach, this will consume a lot of tokens in the
+1:28:32
+input. So you could easily exceed the block size value. So keep that in mind
+1:28:38
+when creating the data set. And here I'm saying think of showing the model multi-turning examples because this will
+1:28:44
+help it a lot to understand how to to reply to a user. In this series, I will
+1:28:52
+use both appro both approaches. I'll start with the first one because it's the simplest and then we will evaluate
+1:28:59
+the model to see if it will be able to reply to the user. It should be able to
+1:29:04
+reply to common let's say common messages that are available in the finetuning data set. But if you want to
+1:29:11
+discuss with the model on topics that are not in the data set then we will have a problem. Also if you want to have
+1:29:18
+a coherent conversation with the model that that will not work. Then we will go
+1:29:23
+to the second approach and see how how this approach will solve those issues. Are you ready? Now let's code. Open the
+1:29:31
+fifth notebook. It's called fine-tuning data set. And here we will start by
+1:29:37
+reading a conversation that we exported from WhatsApp or signal or any other
+1:29:43
+app. Here I added a dummy data just to show you what it contains. Let me let me
+1:29:49
+show you. So basically it's a conversation between two people and I generated this with with chat GPT. This
+1:29:57
+is fake data. Let's see how we will we will use it. In that data set we have or
+1:30:02
+in that conversation we have 75 lines and the first thing we will do is to clean the conversation. We have done
+1:30:09
+this in the first notebook. So here we are going to to to apply the same filters that we applied in that episode.
+1:30:16
+So nothing new here. And after that we will see how many lines we removed. In
+1:30:21
+this case we will not remove any line because this data it's clean. In this section we will see how to create the
+1:30:28
+data set. First we need to group messages by sender. If I open the dummy data again you can see that sometimes a
+1:30:35
+person can send multiple messages sequentially. This is not ideal. So we
+1:30:41
+need to concatenate those messages in order to have this structure. So as you
+1:30:46
+can see before we have user one, user one, user two, user two and then we have user one. What we would like to have is
+1:30:53
+like this. We want to have user one, user two, user one, user two, etc. So in
+1:30:58
+that case we will just we will just concatenate the the strings or the messages and add a new line character
+1:31:05
+between them. This is how it looks like and this is exactly what we will achieve with this code. So you remember we we
+1:31:12
+had 75 lines after assembling those or after grouping the messages by sender
+1:31:18
+now we have only 65 entries in the data. So after doing this now we need to
+1:31:25
+convert the messages into this format. You can see that we start with the start of text token. Then we we put the
+1:31:32
+sender. We add the separator token. We put the message that the person has sent
+1:31:38
+and finally we finish with the end of text token. And this is how we how we
+1:31:43
+are doing this. So we are defining the special tokens and then basically for each message entry we are going to
+1:31:50
+extract the sender and the message and form the input sequence. And finally
+1:31:56
+again we will have 65 tokens but this time if I look at the let's say the
+1:32:02
+first entry you can see that this is what we have. We have start of text token the the first person the separator
+1:32:09
+and here you can see that we concatenated the the two entries into just one. Here we have hey we have this
+1:32:16
+new line character and the second message and we end the sequence with the end of text token. So after doing this
+1:32:23
+we are going to save the data in a JSON format so that we load it in the next
+1:32:28
+notebook where we are going to train the model using this fine-tuning data set.
+1:32:34
+So make sure to run this and let me let me do that. Let's open the data and here
+1:32:39
+is how it looks like. We are using JSON because it will be easier to parse than
+1:32:45
+saving it as a text file. So that's it for this video. As I said in the next one, we are going to start the
+1:32:52
+fine-tuning process. I'm going to start with without providing the model a context and after that we will try to
+1:33:00
+modify the data set so that we provide the model with a context and then we will compare the two approaches to see
+Instruction Fine-tuning
+1:33:06
+which one delivers a good assistant at the end. See you next time. Hi everyone
+1:33:11
+and welcome to this new video where I will talk about fine-tuning and how it
+1:33:17
+is used to create an assistant from the base model that we trained in the
+1:33:22
+pre-training episode. I will also show you the different methods of fine-tuning
+1:33:28
+that you should know before attempting to train the base model further on a
+1:33:33
+fine-tuned data set. Finetuning is the additional training performed on the
+1:33:39
+base model to create an assistant that excels at a certain task. We have two
+1:33:46
+main methods of fine-tuning. The first one is called full fine-tuning or if you
+1:33:52
+do some research, you'll also find people call it instruction finetuning. How does it work? Well, we take the base
+1:34:00
+model and start tweaking all of its weights. This is why we call it full
+1:34:05
+finetuning because we are going to modify the full model. In the second method which is called PET which stands
+1:34:12
+for parameter efficient finetuning here. In this case we don't train the base
+1:34:17
+model. Instead we freeze the weights from the full model and we add other
+1:34:24
+weights on top of it. This is what I illustrated here with these new blue
+1:34:30
+neurons. This method is performed with Lora or Qura. Lora stands for lower rank
+1:34:37
+adaptation and basically Qura is Lora but in low precision because Q means
+1:34:43
+quantized. At the end of training we get something called an adapter which
+1:34:49
+basically stores the new weights that we attached to the base model. And the cool
+1:34:55
+thing about this is that we can detach and attach different adapters to one
+1:35:01
+base model. And each adapter could be specifically trained on a let's say
+1:35:06
+specific domain so that the model excels at that specific task. Now let's talk
+1:35:12
+about efficient training. Training on one example at a time is not efficient.
+1:35:18
+Why am I saying this? Let's look at this example. Here is the first input. It contain let's say that it contains 43
+1:35:25
+tokens. Look closely here. This input contains two things. It contains the user message and the assistant answer.
+1:35:33
+In the second example, we have multiple turns. So we could have user assistant
+1:35:38
+user assistant. So basically the length of this second input is bigger than the
+1:35:43
+first one. And here let's assume that we have 86 tokens. This is a problem because you can't batch these two inputs
+1:35:51
+because they don't have the same sequence length. Here we have 43, but in
+1:35:57
+the second example we have 86. If you don't think of a solution to solve this issue, then you will end up training the
+1:36:05
+model on each example at a time. And this is what I said why I said in the beginning that we should not train on
+1:36:10
+one example because this is inefficient. Luckily, there is a solution and I will
+1:36:15
+show it in the next slide. As I said, ideally we want to batch the data. But
+1:36:21
+how do we do that? The solution is to use padding tokens. This is a special
+1:36:26
+token that is used to create sequences with the same length. Let's look at the
+1:36:33
+same example. Here we have the two different inputs. Let's assume that the block size is equal to 256. First, we
+1:36:40
+encode the first input. we get this list of tokens. Then we do the same thing for
+1:36:46
+the second input. Now we add padding tokens to each sequence until they they
+1:36:53
+all reach the block size. Notice we added the padding tokens to the end of
+1:36:58
+this sequence of ids. But we can also add them to the let's say to the start
+1:37:05
+of the sequence if we want. Both options are valid. And this is how you use
+1:37:10
+padding tokens to batch the data. Making training faster and more efficient. I
+1:37:16
+want to emphasize something. The padding tokens are not considered when computing
+1:37:22
+the loss function because the model should not generate the padding token and it should not see see it during the
+1:37:29
+finetuning process. Basically, we are using the padding tokens as a mean to batch the data in order to make the
+1:37:36
+training more efficient. Let's see how we form the X and Y pairs. And this is
+1:37:42
+simple. They are formed like the first stage. The first stage means pre-training. We start with a sequence
+1:37:48
+of text. We encode it with the tokenizer. Then we add the bing tokens
+1:37:54
+to the front or the end of the sequence of ids. We take that sequence and we
+1:38:00
+consider it as the input which is X. Then we shift the sequence by one
+1:38:05
+position and we consider that as the target. Notice we have a problem. We are
+1:38:12
+trying to access a value that does not exist in the list. To fix this basically
+1:38:17
+we will just append another padding token because we don't care about the last value. We keep repeating this for
+1:38:24
+the rest of the sequences and then we create our data loaders. Now let's see
+1:38:30
+how to implement this in the notebook. Here is the notebook. It's called 61
+1:38:36
+fine-tuning with no context because I will create another notebook but with
+1:38:42
+context. And if you watched the video where I talked about the fine-tuning
+1:38:47
+data set, I explained what no context and what with context means in details.
+1:38:54
+So let's start. First, we need to prepare the data. In the previous notebook, we have stored the finetuning
+1:39:00
+data as a JSON file. So let's start by loading it. And to make sure that it was
+1:39:06
+loaded correctly, let me print the length of the data. And here in my example, I have
+1:39:12
+7,700 examples. That's good. Now, let's load the tokenizer. And here I will load
+1:39:18
+a different class. Instead of using the basic tokenizer, I am going to use the
+1:39:23
+regx tokenizer. It's similar. If I use the load method, I will be able to load
+1:39:29
+the my tokenizer even though it was a basic tokenizer. The difference between
+1:39:35
+basic and the regax tokenizer is that this one will take care of the special
+1:39:40
+tokens when we encode the sequence. The basic tokenizer does not take that into
+1:39:46
+consideration. So let's run this cell. And now let's start tokenizing the sequences. So we are going to loop over
+1:39:52
+the sequences and then we will use the encode method. And here because we are
+1:39:57
+using the regax tokenizer, we are going to add this parameter. And this basically allowed special it will take
+1:40:05
+care of those special tokens. If you want you can see that here this parameter accepts different values. We
+1:40:11
+have none non rays etc. But we don't want to raise any errors. We just want
+1:40:16
+to encode those special tokens. So let's do that. And here for example this the
+1:40:21
+first sequence contains 66 tokens. Now let's split the data into both training
+1:40:28
+and validation sets. Here I'm going to take 95% of the data as training. But
+1:40:34
+here we have to be careful when separating the data into train and
+1:40:41
+validation sets. We need to make sure that we keep the the sequence or that we keep the conversation form. So we should
+1:40:49
+have person one, person two, etc. In the training and validation sets, we should
+1:40:55
+always start with the first person and then at the end we will have the
+1:41:00
+assistant message. If you take this index randomly, then this is not
+1:41:05
+guaranteed to happen. So we need to do that manually. And first we are going to get that initial index. Here we have a y
+1:41:13
+loop. We are going to subtract one from that index until we find that the last
+1:41:20
+message contains the assistant turn. If we find that then we are going to stop
+1:41:26
+and then we are going to split the data and this will guarantee that the end the
+1:41:32
+last message in the training data will be the assistant term and the first message in the validation set will be
+1:41:39
+the U message or the first person's message. If I print this you can see
+1:41:45
+that this is correct. So here is the training set. This is the start message. You can see that the first item in the
+1:41:51
+training data is the U-turn and the last message is the assistant message and in
+1:41:57
+the validation set it's it's the same. So we start with the U message and we end with the assistant message. After
+1:42:04
+doing that we are going to get the training data and validation data here.
+1:42:09
+Um this is text but we don't want that. We want to split the tokens. This is why
+1:42:15
+we are using the tokenized data lists instead. And now in this section, we
+1:42:21
+need to combine the U and assistant turns into one sequence. Previously,
+1:42:26
+each item in the data contains either the U turn or the assistant turn. But
+1:42:33
+what we want is that we want to combine those into one item into one sequence
+1:42:39
+and create a new data from that. And this is exactly what the combine turns method does. It will take the data and
+1:42:47
+here sometimes if we group the two items we might exceed the block size. So if we
+1:42:55
+set should trim long sequences to true then we are going to trim those sequences to not exceed the block size.
+1:43:02
+So let's see how this works. Basically we are looping over all the items and here we are we add minus one because we
+1:43:09
+are indexing two items at at a time and the step will be two. So we take the u
+1:43:15
+message and yeah the system message if for some reason they are null they don't contain anything we are going to skip
+1:43:21
+that but if that's not the case then we are going to combine them. And here if the length is greater than block size
+1:43:28
+and this flag is set to true we are going to trim the the final message and
+1:43:35
+after that we are going to append it to this list and we are going to return it. Okay. So let's print the length.
+1:43:41
+Remember before we used to have 7,383 items in the training set, but
+1:43:48
+after combining the U and assistant turns, now we basically have
+1:43:55
+3,691 and this is half of the the previous length and the same for the
+1:44:01
+validation set. So that's correct. Let's keep going. Now let's convert each sequence of tokens into a tensor. So
+1:44:08
+this is the problem that I talked about in the slides. If you try to do this then PyTorch will give you an error.
+1:44:14
+Why? Because each sequence contains a unique sequence length. So let's let me
+1:44:20
+take this just to show you what I mean. So if I take the first item and then the
+1:44:27
+okay so let's take the last item. You see that the first the sequence of the first item is 104. But the last input in
+1:44:35
+this list contains 56 tokens. When you use torch tensor, PyTorch expects that
+1:44:42
+all sequences have the same length. But this is not correct. This is why it says
+1:44:47
+it gives you this error. So we need to make sure to add the badin tokens to solve this issue. So the bad token here
+1:44:54
+I chose minus 100. This one is used as a mask. We are using minus 100 because the
+1:45:01
+categorical cross entropy loss function when it sees this value it will not take it into consideration when computing the
+1:45:08
+loss the loss value and this is exactly what I said in this comment. Okay. So let's see how we apply the padding to
+1:45:15
+the data. So here we are going to using it for both the training and validation sets. And it's simple. So it takes the
+1:45:21
+data, it takes the block size and the padding token. Now we loop over all the
+1:45:27
+items. We convert the the list of tokens into a tensor and we use the pad method
+1:45:34
+which comes from the functional API. We give it the tensor and here if you want
+1:45:40
+to use right padding you keep this. If you want to to use left padding then you
+1:45:46
+use the second value. So here basically we we are going to compute how many
+1:45:51
+values are missing from the tensor and based on that on that value the pad
+1:45:57
+method will basically add those padding tokens that are missing to basically
+1:46:04
+have all the sequences be of size block size. This is simple. So after getting
+1:46:09
+the padded tensor, we are going to add it to the tensors list and after that we
+1:46:15
+are going to stack them and using the stack method we are going to basically
+1:46:20
+create the batch. So now we use the apply padding to data method for both
+1:46:27
+splits and let me run this. Okay, so you can see that this is the batch. So the
+1:46:32
+batch size is 3,681. And you can see that all sequences have 256 as the sequence
+1:46:40
+length because we used the block because our block size was set to this value.
+1:46:45
+Let's look at the first element in the training data tensor list. And you can
+1:46:50
+see that here we used we used left padding. This is why we have the padding
+1:46:56
+tokens at the start of the list or at the start of the tensor. But again if
+1:47:02
+you changed this and used the other one then you will add them to the right of
+1:47:07
+the sequence and the same thing for the validation data tensor. Now let's create the data loaders. Uh I I would remove
+1:47:14
+this set because we don't need it. Okay. So here is the finetuning data set class and here it takes the data the device
+1:47:23
+and the padding token and it's simple. So if you go back to the slides, I
+1:47:29
+showed you that basically X is the is the sample we take all the ids and we
+1:47:34
+consider that as the X. But for the target, we are going to shift the
+1:47:40
+positions by one and take all the tokens. But we have a problem here. The
+1:47:45
+shapes won't match. This is why we are going to add another padding token to
+1:47:50
+the target. And after that, we just return the two pairs. And here we have the batch size the device. If I run this
+1:47:59
+then I should not get any errors. But let me let me comment this just to show you that we will have a mismatch in the
+1:48:06
+sequence length. Here we have 256 but here we have 255. This is why we need to
+1:48:11
+add another padding token to the end of the target tensor. Now if I print this,
+1:48:18
+you can see that we have 256 in both X and Y. Now let's start fine-tuning. We
+1:48:23
+created the data. We prepared it. We did everything. So now we are going to start by loading the saved checkpoint. Here we
+1:48:31
+are. So let's just create the instance of the GPT language model class. In this case I have 13 million parameters. And
+1:48:38
+here I will load the state dictionary from this checkpoint. And here it says
+1:48:44
+all keys matched successfully. So if you if you changed the values here and try
+1:48:51
+to load the checkpoints this will not work. So make sure that the values are
+1:48:56
+the same so that you will be able to load the the model or the checkpoints
+1:49:02
+and here I can generate from the base model just to make sure that those weights are correct. I I won't do this I
+1:49:09
+will skip it. The estimate loss function is the same. I have removed evaluation
+1:49:15
+iteration iterations that parameter is no longer passed to the estimate loss
+1:49:20
+function. So here I will estimate the loss on the full data instead of just a
+1:49:26
+subset. So let's run this. We have the save checkpoints we did not change. And here is the training loop. It's similar
+1:49:33
+again here. I I have decreased the learning rate because we already trained
+1:49:38
+the base model. I want to fine-tune it smoothly. I don't want to fine-tune it
+1:49:44
+with a high value of the learning rate here. I want to evaluate the loss each
+1:49:50
+20 iterations and the max iterations which is basically the epoch is set to
+1:49:56
+20. But you can play with those values. After that we are going to print the training and validation losses. We are
+1:50:03
+going to plot them. Sorry, we are not going to print them. And finally we have this method that will basically generate
+1:50:10
+from the model. And here we have a difference. Before we used to basically
+1:50:16
+generate let's say 100 tokens if we want because the base model does not know
+1:50:22
+where to stop. But because the finetuning data set contains the end of text token then the model if it wants to
+1:50:29
+stop then it should generate this token. So here what we do basically we create a while through loop. So this will loop
+1:50:37
+indefinitely and in each iteration we will generate one token at a at a time
+1:50:42
+and if we detect that the model generated the end of text token then we are going to break from this while loop.
+1:50:49
+So this is the only difference between this generate functionality and the
+1:50:54
+generate functionality that we had in the pre-training step. So I showed you
+1:51:00
+the the notebook as I said this this is no context because we take one user
+1:51:05
+message and one reply and consider that as the input but after training the
+1:51:11
+model on this first case I am going to create another notebook where I will
+1:51:16
+provide more context. So instead of taking just one user message and one
+1:51:21
+model answer or one assistant answer, I might take two or three depending on if
+1:51:27
+I could fit that into the input. So now what I will do basically I will repeat the same thing that I did when I
+1:51:34
+pre-trained the base model. I'll try running this multiple times and whenever I finish a training run, I will show you
+1:51:42
+the results and generate from the model to see if this is a good training run or
+1:51:47
+not. And it depends. If this video is long, then I'll just talk about the no
+1:51:53
+context version and I'll leave the the context version to the next video. If it
+1:52:00
+isn't that long, then I'll I'll make sure to merge them both into one single
+1:52:05
+video. Now I am ready to start training the base model. Here is the training
+1:52:11
+loop and I will start as I said with a small learning rate. I'll train this for
+1:52:16
+just five epochs. I will evaluate the model every 20 iteration. Let's run this
+1:52:22
+just to make sure that it won't break. Okay, good. So the model is now fine-tuning. When this finishes, I'll
+1:52:29
+come back and I'll show you the results. I am back and as you can see the training finished. We we can see that in
+1:52:36
+the first iteration the loss was around 9.7 but at the end of training both the
+1:52:42
+training and validation loss went down significantly and that's a good thing. Let's plot the loss and this looks good.
+1:52:49
+If you remember in the pre-training notebook we saw that the training loss went down but the validation loss went
+1:52:57
+up. And in the slides I showed you that's a sign of overfitting. And I said
+1:53:02
+in that episode that I don't mind if the model was overfitting because in the validation set we we did have a
+1:53:10
+different distribution. So it's not fair to test the generalizability of the model because we have a small data set.
+1:53:16
+But this is what you should see when you train a model because here I took a conversation between me and another
+1:53:22
+person. The data set the distribution will be the same. Yes, there will be a difference sometimes but that's
+1:53:28
+acceptable. So this is why the the curves are looking great this time. So over five epochs. So you can see that
+1:53:34
+here the loss is starting to stagnate but the loss is not going to tell us if
+1:53:39
+the model is able to generate good answers or not. We need to test this
+1:53:45
+with the generate method. So here I start I am starting with this sentence. It says hello how are you here? Let me
+1:53:51
+let me collapse this. I'm going to print that message as the Uturn and after that
+1:53:56
+when when generating the model answer I'll print it too. So let's do that. Okay. So here the first thing that I see
+1:54:03
+the generation is not that great. But I see that the model was able to pick up that it should use the end of text token
+1:54:10
+in order to finish the sentence. But here if I keep generating from the model I'll see that sometimes it will give me
+1:54:16
+good answers. Yeah. For example, here it says it answers, but I mean this is not
+1:54:21
+a good answer for this specific message that I that I typed. Maybe this is that
+1:54:26
+generation is not that good because we trained the model just for five epox. So let me keep generating just to see. So
+1:54:32
+you can see sometimes it does generate long answers but currently the generations are not are not that great.
+1:54:40
+So let let me do the training again but this time I'll train it for more epochs. Also in this second training run, I'll
+1:54:46
+try to increase the learning rate from 6 E minus 5 to 1 E minus 4 and the max
+1:54:53
+iterations I'll increase that to 10. Let's train the model and see if this if
+1:54:58
+this training run will be better. I am back and the second training run finished. Took me almost 8 minutes. If
+1:55:06
+we plot the training and validation loss, you can see that again this is what we saw before. We trained the model
+1:55:13
+for 5k box and we we saw that it started to stagnate. And here we start to see a
+1:55:18
+little bit of overfeitting, but it's not that bad. Again, let's generate from the model to verify if the generations are
+1:55:24
+good. Okay, so this time I changed the sentence and the model is is generating text that that is understandable. The
+1:55:31
+the answer is not correct. It means that this is not an answer that you will say to this specific user message. But what
+1:55:39
+I'm looking at here is the model able to generate coherent text. But here I was
+1:55:44
+generating a lot. So here it starts laughing. So yeah, definitely the model is not is not we you can't have
+1:55:51
+conversation with the model like this. I'm assuming that because we use no context, the model is not able to to
+1:55:58
+learn how to converse with the other person. But what's great about this is that the model knows that it should
+1:56:04
+respect this new format and it should generate the end of text token in order to finish the conversation. But as I
+1:56:11
+said, if I keep generating sometimes I get good results, but it's it's very rare. I'm not going to stop here. I will
+1:56:18
+train the model even further. So instead of 10, let's train it for 20 epochs or
+1:56:23
+let's go up to 100. Let's have this final training run to to be to be exaggerated. I just want to see even if
+1:56:30
+the model overfits the data, I just want to see if it will at least give us average answers that are related to the
+1:56:37
+question or to the user message. So I'll do this third training run and I will come back. This training run took 100
+1:56:44
+minutes to finish. And if I plot the training and validation loss, you can
+1:56:50
+see that we get the same behavior that we saw in the pre-training episode. This clearly indicates that the model is
+1:56:57
+overfitting. But at least let's see what it will generate. Sadly, the results don't look great. What I can what I
+1:57:03
+observed is that the text is okay. The model knows how to how to use words
+1:57:09
+together in order to form coherent sentences, but the answers of the assistant to the user queries are not
+1:57:16
+related. That's not great. There is no problem with that. The good thing is that we have a notebook that allows us
+1:57:22
+to do the finetuning. Later we will change the hyperparameters in order to
+1:57:28
+to see if we can get a model that converts very well. I will stop
+1:57:33
+fine-tuning this model with the no context approach. And now I will create
+1:57:38
+the the other notebook that allow that will allow me to create inputs with
+1:57:44
+context. And let's see if that approach will be better. Here is the second
+1:57:50
+notebook that I called 62 fine-tuning with context. It's similar to the previous one, but let me show you what I
+1:57:57
+changed. But before that, let me run these cells so that I can prepare the data. In this cell where we combined the
+1:58:05
+U and assistant turns into one sequence, we will take this output and feed it to
+1:58:11
+the merge conversation turns. The merge conversation turns method is simple. It
+1:58:17
+takes the combined data that we got after applying the combined turns method
+1:58:22
+and it will try to take multiple sequences and merge them into one big
+1:58:28
+sequence. But we need to make sure that the new sequence does not exceed the block size. So let's see how this works.
+1:58:35
+The new data is basically the the new list that we will get at the end. Current sequence is a list that we will
+1:58:42
+use in order to merge multiple turns or multiple sequences. So here we are
+1:58:47
+looping over the combined data. We get the first sequence. If the size of the
+1:58:52
+current sequence plus the new sequence that we got, if this is smaller than the block size, then we will append that
+1:59:00
+sequence to this list. This is a temporary list that will allow us to combine the sequences. In the next
+1:59:06
+iteration, we will get another sequence. If this condition is always true, we will keep extending the list. But let's
+1:59:12
+say that this condition is not is no longer true, then in the else block, we will make sure that we have something in
+1:59:18
+the current sequence. And then we will append the new sequence to the new data
+1:59:24
+list. And after that, we will refresh the current sequence with the new sequence that we got. And we will keep
+1:59:29
+doing this until we reach the end, the last sequence. And we need to make sure that if there are some sequences that
+1:59:36
+will that were not added to the new data list to add them at the end because this
+1:59:42
+condition might be true at the last item. And if it is true then there is no
+1:59:48
+way to add that sequence to the new data list. So after running this you can see
+1:59:54
+that after comparing the length of the combined train data and the merged train
+2:00:00
+data we can see that it is much much smaller. It's three times smaller than the original data that we that we had
+2:00:07
+before. Okay. So let's continue. As I said this is the only change. The rest is the same. So this will not work
+2:00:13
+because we don't have the same sequence length. But we will add the padding token. But here we need to make sure to
+2:00:19
+instead of using the combined training data to use the merged training data and
+2:00:26
+merged validation data instead. Okay, let's look at the tensors. You can see
+2:00:32
+that this time we have fewer padding tokens because we merged multiple sequences. Let's create the the data
+2:00:40
+loaders. Let's verify that the shape is correct. Yes, it is. Here the batch size
+2:00:45
+is 64. But because we have few data points. Let's decrease this to give the
+2:00:51
+model few samples in each iteration. I mean if you want you could you can
+2:00:56
+increase the batch size as long as it fits in your GPU. And now let's start the fine tuning. First let's load the
+2:01:03
+model. Let's load the checkpoint. Let's skip the generation. We don't want to do it. Here we have the estimate loss
+2:01:10
+function. Save checkpoint. And now let's start the training loop. Let me start small. I want to set the max iterations
+2:01:17
+to one. The learning rate, let's set it to 1 in -4. Let's evaluate the model
+2:01:23
+every 20 iterations. And as I said, the rest will be the same. Just make sure to
+2:01:28
+create the folders here because this is the first run. So I'll change this from run three to run one. So let me run this
+2:01:35
+and I will come back. Training this model was quick because we have just one ebug. Sadly, I don't have a lot of
+2:01:42
+points because the the evaluate the interval was higher. So, I needed to decrease it to get more points because
+2:01:49
+now we have few batches than before. And now let's start generating from the model. Okay. So, as you can see from
+2:01:56
+this generation, it doesn't look good because we trained the model for one epoch. And here I added break because
+2:02:02
+the model was not generating the end of text token. So, I had to add it manually to force it to stop when it reaches the
+2:02:09
+block size. So that was expected. Now let's train the model for more than one epoch. The second training run has
+2:02:16
+finished. This time I trained the model for 10 epochs. And I have changed the interval for evaluation to be five
+2:02:23
+instead of 20. Let's plot the loss functions. They look good. And now let's generate from the model. So now there is
+2:02:30
+no need to break manually. But I'll keep it anyways because now the model since
+2:02:35
+it trained for 10 epochs, it knows that it should generate the end of text token. So I changed the prompt to be
+2:02:42
+hello, how are you? Have you seen my last video? And the model answered by saying yes. And here it printed it also
+2:02:50
+added this laughing emoji. But you see that yeah, it works. But it's the same
+2:02:55
+behavior. But I had to test more just to make sure to see if this approach is
+2:03:00
+better than using no context. But what I from from what I can see that the
+2:03:05
+generations look great. The model generates good text like before. But the
+2:03:11
+answers Yeah. So as you can see sometimes the model generates few tokens, sometimes it generates a lot of
+2:03:18
+tokens. I will do another training run. This time I'll train it for 20 epochs. I
+2:03:24
+won't go to 100 because that will over the model will overfit. So let's do 20.
+2:03:30
+And here I'll do 3 E minus 4 or actually let's keep it one E minus 4 because
+2:03:35
+since we added more Ebox then we should instead of increasing the learning rate
+2:03:41
+we should decrease it. So let's keep these hyperparameters and let's hope for the best. I will train the model and I
+2:03:47
+will be back. I am back and as you can see the model trained for 20 epochs. Let's plot the losses again. We get the
+2:03:55
+same plot each time. And whenever we increase the number of epochs, the gap
+2:04:01
+between the validation and training loss keeps increasing. After playing with the model a little bit, I see that it did
+2:04:08
+not improve. We still get the same behavior. The model generates text well.
+2:04:13
+It knows how to end the conversation, but I cannot converse with it. So don't
+2:04:19
+assume that you could take this, you can send a message and you will receive something that replies to what you
+2:04:26
+specifically said to the model. But let's not get discouraged. After arriving at this point, we have trained
+2:04:32
+a base model and we have fine-tuned it. And we saw that in my case, even though
+2:04:38
+I have a small data set, I was able to get something that knows how to model
+2:04:43
+the dera language. I know it's not superb, but it's not bad either. So that's great. So in your case, if you
+2:04:50
+have a big data set, if you have a lot of conversations, so you could leverage that data and you will end up with a
+2:04:58
+good base model that understands let's say English or French or any other
+2:05:03
+language. I did this specifically because the Danish language is I will say rare. So you will not find big langu
+2:05:11
+large language models that are trained on this language. So this is why I try to do this and I see that this is very
+2:05:17
+promising. I would assume that if I increase the size of the data set, then the model will be even better. But as I
+2:05:24
+said, let's not get discouraged. We have created the notebooks. So I might return to the first step, train the base model,
+2:05:31
+maybe train a bigger model on more epochs and then do the finetuning again.
+2:05:36
+So yeah, uh we have every every single piece. So the only thing that we need to do is to play with the hyperparameters
+2:05:43
+to play with the data that we feed the models. After training the model three
+2:05:48
+times on this notebook, I think it's time to stop because we have not seen
+2:05:54
+any difference. In the upcoming videos, we will see how to use adapters. So what
+2:06:00
+we have done in the 61 and 62 notebooks was full fine-tuning. We trained the we
+2:06:07
+fine-tuned the full model. In the adapters video, we are going to attach
+2:06:12
+new neurons and we are going to train those specific neurons in order to
+Fine-tuning with LoRA
+2:06:18
+create an adapter that we can attach or detach from the base model. See you next
+2:06:23
+time. Hi everyone. In this video, I will show you how to fine-tune the base model
+2:06:30
+using the second method called parameter efficient fine-tuning. We will focus on
+2:06:36
+a technique called Lora. Let's get started. Loa is a way to fine-tune
+2:06:42
+models efficiently. It works by adding only a few extra parameters to the base
+2:06:49
+model during training. This diagram explains it. First we start with the
+2:06:54
+base model and then we add new parameters. These new parameters are
+2:07:00
+going to be trained and in the end we get an adapter that we can attach or
+2:07:06
+remove from the base model. In the previous video we used instruction
+2:07:11
+fine-tuning which trains the entire model. Here's a simple diagram. We start
+2:07:18
+with the input during feed forward. we go through the weights and then we we
+2:07:23
+obtain the output. But during back propagation we apply this formula. You
+2:07:29
+can see that here we have W. These are the original weights that we started with. And during back propagation we try
+2:07:36
+to learn the delta W matrix. We add these two items in order to get the new
+2:07:44
+weights. If the weight matrix W has this shape, we need to update 4 million
+2:07:51
+parameters, which is a lot. Now, let's see how Laura makes this easier. You can
+2:07:56
+see that the diagram changed a little bit. That's because with Laura, we approximate the delta W matrix using two
+2:08:05
+smaller matrices, A and B. When we multiply them, we get a matrix with the
+2:08:11
+same shape as delta W. Matrix A has dimensions N by R and matrix B has
+2:08:20
+dimensions R by M. The parameter R is called the rank and it helps us control
+2:08:28
+how many new parameters we add to the base model. For example, if we keep the
+2:08:34
+same size as before and set R to two, we only need to update 8,000 parameters
+2:08:42
+instead of 4 million parameters if we decide to use instruction finetuning.
+2:08:49
+Now, let's start coding. Before I show you the notebook, please make sure to pull the latest changes because I am
+2:08:56
+updating the GitHub repository regularly. Now open VS code or your preferred IDE and make sure to open the
+2:09:05
+seventh notebook and you will see that adding Laura is very simple. Here we
+2:09:11
+have these same things. I I have just copied the previous notebook which is 62
+2:09:16
+or 61. They are similar and here we are just preparing the data. So here make sure to load the finetuning data set.
+2:09:23
+Here we are going to use the regax tokenizer and we are going to load the
+2:09:28
+tokenizer that we saved before. Make sure to tokenize the data, split it and
+2:09:35
+I I'll go through this quickly because as I said we have seen this in the previous video. So I don't want to waste
+2:09:41
+time in this section. We arrived at the section where we are going to fine-tune
+2:09:46
+the model with Laura. First we are going to create the base model. We are going to add nothing. Make sure to run this.
+2:09:53
+Here in my example, I have 13 million parameters. And here is the checkpoints that I that I will load. And here is the
+2:10:01
+new section. This is the new thing that I added in this notebook. We are going to add the Laura layers. Here I have
+2:10:08
+created another scripts that I called Laura. It is located here inside the
+2:10:15
+transformer folder. And what it does it it it has two methods that we can use.
+2:10:21
+The first one is get laura model and the second one will print how many parameters are trainable. The get laura
+2:10:29
+model method will take the previous base model. It will take a configuration and
+2:10:35
+the device of course and it will try to add new parameters to it. How does this
+2:10:42
+work? It is very simple. If I go back to the GPT language model class, remember
+2:10:47
+it is located in this script. You can see that we have a lot of linear layers
+2:10:53
+and Laura what it does is it will replace these linear layers with new
+2:11:00
+layers that we call Laura and basically it will keep them it will keep the
+2:11:05
+previous linear layer and it will it will add another layer with the new parameters. So whenever we you see a
+2:11:13
+linear layer in the GBT language model class, we will replace it with a new
+2:11:19
+layer called let's say Laura layer. And this is exactly what we are going to do
+2:11:24
+in this script. When we when we give the model to this method, we are going to
+2:11:30
+create a copy of the model and then we are going to replace the linear layers with Laura layers. And here are the
+2:11:37
+Laura the Laura layers. It is very simple. So let's start with the Laura layer. If you remember, I showed you in
+2:11:44
+the slides that we replaced the delta W matrix with two small matrices A and B.
+2:11:51
+Here they are. And by default, because we did not start fine-tuning, we initialize the B matrix with zeros so
+2:11:58
+that we don't affect the base model. But later during finetuning, the weights in
+2:12:04
+these two matrices will change. So we have a b and we have alpha. I didn't
+2:12:11
+talk about this in the video but this is a value that we can use in order to scale the effect of the lura layers. You
+2:12:18
+will see where when we are going to use this and then here we are here is where we apply that multiplication. So if we
+2:12:26
+multiply a and b we get delta w and we multiply that with the inputs that we
+2:12:32
+receive and we have this scaling factor that we can add on top of that
+2:12:37
+multiplication. Okay. So this is our new layer that we called Laura layer. But as
+2:12:43
+I as I said we want to replace the linear layer with a new layer. So here
+2:12:49
+is the new layer that we are going to use. It is called linear with Laura. Why? because it is going to receive the
+2:12:56
+previous linear layer. Here it is. And we are going to add to it the Laura
+2:13:01
+layer. So this is the trick in order to implement Laura. You keep the previous
+2:13:06
+layer that the model was trained on, but you add to it another layer in the
+2:13:12
+initialization. This will be equal to zero because we initialized B with
+2:13:18
+zeros. So it will have no effect on the linear layer. So the model will not be
+2:13:23
+affected. But later during training we are going to change the weights in these
+2:13:29
+two matrices and self. Laura X will have an effect on the model. And at the end
+2:13:37
+if we want to save the adapter we are going to save only the new parameters
+2:13:43
+that we added which are in the matrices A and B for each layer. So this is how
+2:13:50
+you implement Lora. And if I go down specifically in this method replace
+2:13:55
+linear layers with Laura layers, we get the hyperparameters which are the rank
+2:14:00
+and alpha. We get them from this dictionary. And here is the trick. So
+2:14:05
+here module.named children. Let me show you what this outputs so that you understand
+2:14:11
+how this works. So I I have this notebook that I was using in order to create this implementation. And as you
+2:14:18
+can see model if you take the model and call the named parameters method this is
+2:14:24
+what you get basically you will get the layers you will get the name for each
+2:14:30
+layer. So here you have the token embedding layer and you have the weights. Here is the attention the self
+2:14:36
+attention layer and here is the first head because we have index zero. Here are the keys. Here are the queries and
+2:14:43
+the values. So after converting the model, you see that we added those new
+2:14:49
+Laura layers. But because we haven't done that yet, here is how we do it. So
+2:14:55
+we loop over all layers and if that layer is an instance of the linear
+2:15:01
+layer, we are going to replace it with this new class. It's simple. But if that
+2:15:06
+is not the case, we are going to call this function recursively because sometimes we have objects inside of
+2:15:14
+objects. If I go back to the model script inside, let's say the multi head
+2:15:20
+attention layer, you have the head layer. So you need to go deeper and deeper into the model so that you
+2:15:27
+replace every layer possible. This is why we use recursion in this example.
+2:15:33
+But if you don't use recursion then you will have a lot of nested for loops and
+2:15:38
+it it will look ugly. So after replacing the linear layers with Laura layers we
+2:15:44
+are going to freeze the base model. So here I call this method freeze non Laura
+2:15:50
+layers. Let me add an underscore because this should be a private method. And here remember if I go back to apply
+2:15:56
+Laura to transformer you can see that those layers that were replaced they have Laura in them in the name so we can
+2:16:04
+detect that. So if Laura is in name we are going to train that layer but if
+2:16:10
+Laura does not exist in that name then we are going to freeze that model. So
+2:16:15
+after running this method, the base model will be freezed, but the new
+2:16:21
+parameters that we added because we replaced the linear layers with the Laura layers are going to be trainable.
+2:16:28
+And finally, so this is what the get Laura model does. It will make a copy of the previous model. It will replace the
+2:16:35
+layers with Laura layers. And finally, it will freeze the base model. And here
+2:16:41
+we have this print trainable parameters. It will print the total parameters, the
+2:16:46
+trainable parameters and the percentage of trainable parameters to the full
+2:16:52
+model. Now let's close this. Let's go back to the notebook. And here is the method. It's simple. So, but I wanted to
+2:17:00
+show you what what it has inside so that you understand what's going on behind the scenes. Now, if I run this, you see
+2:17:08
+that I get the Laura model parameter. uh sorry I get the Laura model and if I
+2:17:15
+feed that model to this method I get 14 million parameters the trainable
+2:17:20
+parameters are 0.42 42 and we will train just 3% of the the total parameters and
+2:17:28
+as I said in the slides if you change the rank value you will change the
+2:17:33
+number of parameters that you will add to the model. So if I decrease this then
+2:17:39
+the trainable parameters will decrease. So as you can see now we have 0.21 21
+2:17:45
+million parameters because remember matrix A and matrix B are affected by
+2:17:51
+this by this value. If I increase it then we will increase the number of trainable parameters significantly but
+2:17:58
+we want to keep this small so that the training becomes efficient. So I'll use
+2:18:04
+four but feel free to change that value. Okay. So now we can if you want you can
+2:18:10
+generate from the base model and the lura model and you will see that those
+2:18:16
+new layers that we added will not affect the transformed model because the matrix
+2:18:23
+B is set to zero. After that we are going to estimate the loss. This this
+2:18:29
+did not change. Let's save the checkpoints. I did not change this either, but in the training loop instead
+2:18:36
+of using the base model, I am using the Laura model. And make sure to update
+2:18:41
+that here also because the optimizer should only update the trainable
+2:18:47
+parameters. It should not touch the base model. This is the only change that that
+2:18:52
+I made to this notebook. And here, make sure to change the file path so that you
+2:18:58
+save the checkpoints for the Laura model. So I will run this for let's say
+2:19:03
+10 epochs. I'll make I'll change the learning rate to one eg -4 and let's
+2:19:10
+change interval to 10. I will run this and I will come back. I am back and the
+2:19:17
+model finished fine-tuning. Let me plot the loss curves. Okay, they look like
+2:19:23
+the previous video and I will assume that the generations are not going to be
+2:19:28
+good. Okay. So again, the assistant or the fine-tuned model was able to pick
+2:19:36
+the new chat format. That's good. But the text is not is not good. Okay. So
+2:19:43
+this time it gave me an emoji. But as you can see, I cannot converse with this
+2:19:48
+model. I was expecting this because if we fine-tuned the full model and we did
+2:19:54
+not get good results, using adapters which only add few parameters won't help
+2:20:00
+either. But at least I have showed you how to apply Loa in order to fine-tune a
+2:20:06
+base model. And in the next video, which I think will be the last one in this
+2:20:12
+course, I will try to revisit the previous steps in order to train a good
+2:20:17
+base model and do a solid fine-tuning step. And hopefully I get better
+2:20:24
+results. I mean, currently we have a I will say medium base model, which is not
+2:20:30
+bad. I mean, I'm pretty happy with the results that we got currently with this limited data. But I'll make sure to try
+2:20:37
+to do something solid at the end so that we end this course with something
+Let's Scale Everything
+2:20:43
+positive. So I hope you enjoyed this video. See you next time. Hi everyone.
+2:20:49
+This is the last video of this course. In this video I will repeat the steps we
+2:20:54
+learned before but this time we will use a large data set. We will increase the
+2:21:00
+vocabulary size and train our model on the cloud. Let's begin. At the start of
+2:21:06
+this course, we used a small data set with 1.5 million characters. Now, I will
+2:21:12
+use the Atlas set corpus created by the Atlasia team, which has 900 million
+2:21:20
+characters. This is 600 times bigger than our first data set. Atlas set has
+2:21:27
+1.17 million rows in the training set and 2,680
+2:21:33
+rows in the test set. Let's look at the challenges of working with big data.
+2:21:39
+With a small data set, we did not need a lot of resources, but loading the Atlas
+2:21:46
+set data set requires a lot of RAM. In this image, you can see that my laptop
+2:21:52
+is using all 16 GB of RAM and also the swap memory just to load the data set.
+2:22:00
+Now, my computer is stuck and I can't do anything else because I have no more
+2:22:06
+memory. Training a tokenizer on 900 million characters will also crash your
+2:22:12
+program because there won't be enough memory left for the algorithm to run.
+2:22:18
+What's the solution? Instead of using the full data set, train on a small
+2:22:24
+sample, about 1 to 5% of the text that you have on your data set. This saves
+2:22:32
+memory and helps you estimate the data distribution. Training a tokenizer on
+2:22:40
+big data takes a long time. In my case, I trained it on 10 million characters
+2:22:46
+and it took 6 hours to finish. Now, let's talk about file formats. After
+2:22:52
+training the tokenizer and encoding the text into tokens, you must save them to
+2:23:00
+disk because repeating this process every time takes a lot of time and you
+2:23:05
+don't want to waste it. What file format should we use? Should we use pickle? The answer is no. Let me explain. If you
+2:23:13
+save your tokens as a pickle file and
+2:23:19
+load it in your Jupyter notebook, you will get an out of memory error. This
+2:23:25
+happens because the file loads everything from disk into RAM at once.
+2:23:31
+Never do this if you are working with big data. Use memory mapped file objects
+2:23:38
+instead. Here I used NumPy to save my encoded text in a memory mapped file.
+2:23:45
+This format lets you load only the parts of the data you need. It works like a
+2:23:52
+Python dictionary. You give an index and you get the data that you want. Now our
+2:23:58
+RAM is happy because the RAM usage is lower and everything runs smoothly.
+2:24:04
+Training the model on this huge data set will take forever. This image shows that
+2:24:11
+I still have 68 million batches to process. And here it says that I need
+2:24:19
+77,000 hours to finish training. So I did the calculations and I need to wait
+2:24:24
+until 20 33 in order to finish one iteration. That's a lot of time. So, my
+2:24:31
+RTX 4070 is not powerful enough. So, I will rent a cloud GPU instead. And this
+2:24:39
+is what you need to do. If your GPU is not capable enough, then go and rent a
+2:24:46
+GPU because it is very powerful. You will do the training in 1 hour or even
+2:24:52
+less. So, that's that's worth it. If you want to train in the cloud, try Lambda
+2:24:58
+or Google Collab or Kaggle. If you want free GPUs then go for Kaggle or Google
+2:25:04
+Collab before buying before paying for GPUs. This will help you get familiar
+2:25:11
+with the environment. If you want to use Lambda then you need to pay for GPUs.
+2:25:18
+But if you want to go for this then make sure that you have everything ready so that when they give you the GPU you will
+2:25:24
+start training immediately so that you don't waste time because you will pay I think you will pay it depends on the GPU
+2:25:31
+that you want to choose but you will pay per hour. So if you used the GPU for 2
+2:25:37
+hours you will pay let's say $5. If you use it for 20 hours, then multiply that
+2:25:43
+by the factor and you at the end you will you will get the the amount of money that you will pay. So don't waste
+2:25:49
+time if you if you decide to rent a GPU. Are you ready? Now let's code after
+2:25:55
+showing you what we are going to do in this last video. Here is the notebook
+2:26:01
+that I have created. Basically I have just modified the previous notebook so that I can load the atlas set data set
+2:26:09
+and as you can see these are the numbers that I showed in the slides and here it says that uh that the training will take
+2:26:16
+forever to finish. Basically I took the same notebook and here I created a Google collab and as you can see here I
+2:26:23
+have almost 16 GB of VRAM locally I have a GPU with 8 GB of VRAM. So that's not a
+2:26:33
+lot. Here I have 16. So I must be able to train for less time. And here if I go
+2:26:39
+down here is the training loop. So here it says that I need 25,000 hours to finish this training
+2:26:46
+run. And here I am not using the full GPU power. So what you do is here I will
+2:26:55
+go back to the top. And here I guess I have the batch size set to two. So this
+2:27:00
+is a very low value. So let me increase that to 16 and you restart the session
+2:27:06
+and run everything. And with Google Collab it's great because what you could do so here basically I have cloned my
+2:27:14
+repository. I have renamed the folder to source code. It's because this name is very big. Here I have installed the
+2:27:20
+requirements. So this is what I did in the first three cells. And then in
+2:27:26
+collab we can connect to Google Drive. If I go to my my drive, you can see that
+2:27:32
+here I have uploaded the tokenizer, the encoded data set and in Google collab, I
+2:27:39
+can mount the drive and access the data from it. So here is the path to the
+2:27:46
+tokenizer and this is how I load the tokenizer that I have trained. And if I
+2:27:52
+look at the vocab, I see that I have everything. So this shows me that it is
+2:27:57
+working. And after that I create the model same as before. And here instead of using from transformer.mmodel we need
+2:28:05
+to use from source code.transform.mmodel because we have cloned the repository. And this is the
+2:28:11
+name that I have gave it. And here basically you instantiate the GPT language model. Here you load the data
+2:28:17
+again it is uploaded to my Google drive. And finally we do the training. So
+2:28:22
+everything is the same. We have seen this in the previous episodes. And here it says that CUDA out of memory. So we
+2:28:31
+can't load 16 examples per batch. So let's decrease that to eight. And let's
+2:28:39
+restart and see if this will work instead. But still the training will be very slow because we have a lot of data.
+2:28:47
+And here I want to go through the whole data set. If you want to take let's say per epoch a thousand examples randomly
+2:28:55
+then this will this will work and the training will finish but because I want to go through the whole data set that
+2:29:02
+will not work for me and I cannot fit eight examples so let me decrease that
+2:29:08
+to four I think four will work so restart and run everything. So this is
+2:29:13
+how it works. You never get things working from the first try, but you should always keep retrying until you
+2:29:20
+get something that works at the end. Let's wait for this and see if if this the training will will work this time.
+2:29:27
+And if you can't use a big batch size value here, I have added this gradient
+2:29:33
+accumulation steps. So basically you take this value and you multiply it with the batch size and it will simulate
+2:29:40
+large batch sizes. So currently I have the batch size set to four and it did
+2:29:45
+not work. So let's go back and set it to two and it should it should work. Lower
+2:29:51
+values are not good because the train they will slow down the training significantly but we have nothing to do
+2:29:58
+about it because we are limited with the VM that we are given and this is remember this is just the free tier. So
+2:30:04
+this GPU that you get here is free and look at this value because this runtime
+2:30:10
+is gi because free GPUs are not available always. So you get a certain
+2:30:15
+amount of time so so that other people can use them. So here in my case I have 3 hours left and after that I need to
+2:30:22
+wait for some amount of time in order to get the GPU back. So here I was saying
+2:30:28
+that you you take this and multiply it with the batch size. Currently the batch size is set to two. Gradient
+2:30:34
+accumulation steps is set to eight. So this gives us 16 and this simulates
+2:30:40
+basically a batch size of 16. You can increase this value to simulate large batch sizes. And here the training is
+2:30:47
+going and I think after 100 iterations we will evaluate the model. So let me
+2:30:53
+wait for this to to go up to 100 and it
+2:30:58
+evaluate the model. And inside the evaluation method, we're not going to
+2:31:04
+evaluate the model on the the whole data set because that will take a lot of time again and we want to spend most of the
+2:31:11
+time training the model, not evaluating it. But at least we are taking a thousand examples and evaluating the
+2:31:18
+model on them. And these examples are generated randomly with this get batch
+2:31:23
+method. Because if you go inside as you can see we are using torch dot random
+2:31:29
+int to get a random index and then because we are using the memory mapped
+2:31:35
+file object we are going to get the portion of the data that we need and we are not going to you can see that here
+2:31:42
+the system RAM we are just using 4 GB but if you we were to load the whole data set then we are going to this
+2:31:49
+memory will be filled very quickly. So let me go down. Okay. So now we are evaluating the model because we have
+2:31:56
+reached the 100th iteration. So now let's wait for for some time and I will
+2:32:02
+come back or actually let me just show you the other providers. So here we have Kaggle. Here you can see that here you
+2:32:08
+can create a notebook or if you want you can upload your own notebook. But here
+2:32:13
+you can see that here are here are the here you have the CPU the RAM and disk
+2:32:19
+storage if you want to enable accelerators. So in Kaggle they call them accelerators. You can come here
+2:32:26
+here is it is set to none and choose the GPU that you want to use or you can go
+2:32:31
+up to settings accelerator and choose the accelerator you want. And here in
+2:32:38
+Kaggle they give you 30 hours. How do you know that? Basically let me go back
+2:32:43
+here. If you click on your profile, you see that here you have here in my case I have 30 hours available so that I can
+2:32:51
+use the accelerator. If you don't see this, this means that you need to verify your account. So go to settings and here
+2:32:58
+verify your account. After verifying the account here it says verified, you will
+2:33:03
+you will be able to to use the GPU. And finally, I mean there are more providers, but these are the three that
+2:33:09
+I wanted to show you. So, Kaggle, Google Collab are free. They have free tiers.
+2:33:15
+This is what I want to say. In Google, in Google Collab here, they say that if if these GPUs that they have in the free
+2:33:23
+tier are not capable enough to solve your problems, then you you could go and
+2:33:30
+uh buy subscriptions. Basically, use Google Collab Pro and this will give you access to other GPUs. So if you click on
+2:33:37
+runtime, change runtime type, you see here are the other GPUs that they have. If you decide to go to pro mode and
+2:33:44
+finally I have lambda. This is what I showed in the slides. Here are the GPUs that they have. And here are the
+2:33:49
+pricings. You can see that here here is the VRM. This is what we want. We were limited by this value. And here the
+2:33:57
+lowest tier or the cheapest I will say GPU contains it has 24 GB of VRAM.
+2:34:04
+That's good. and you will pay $0.5 per GPU per hour. But if you want to go up
+2:34:10
+to the GH200, it will give you 96 GB of VRAM. That's that's a lot. You will have
+2:34:16
+a lot of RAM and a lot of storage, but you will pay three times the price. This
+2:34:21
+is I mean this is the the tricky thing about these things. If you want to train the model freely, that will take you a
+2:34:29
+lot of time. So, if you want to buy time, go and and rent a GPU and you
+2:34:34
+could do the training in one or two hours and you will pay at the end $3 or $5. It's not that much and at the end
+2:34:41
+you will get something that works really well and it will save you a lot of time. So, I wanted to show you the free the
+2:34:47
+free alternatives if you want to start with them. This is what you should do and this is what I did uh currently
+2:34:54
+because I have never rented a GPU before. So this is the for me it's the
+2:34:59
+first time doing this like you. So I started with Google Collab. I see that
+2:35:04
+it's not going to help me because I am bottlenecked with by the GPU available.
+2:35:11
+So the VM is not enough and I cannot increase the the batch size and the
+2:35:16
+batch size is very important in this case because it will allow us to move through a lot of examples in each
+2:35:22
+iteration. So and here also I am limited by the RAM. So if I if I want to load
+2:35:29
+the whole data set by using let's say any any any GPU here I will get 100 GB
+2:35:36
+plus that's a lot of memory. So I could load the whole Atlas set data set without any issue without using the
+2:35:42
+memory mapped file object. So these are things to take into consideration when choosing uh what GPU to rent. And also
+2:35:50
+here this is just one GPU. If you want to use multi-GPU training then click on
+2:35:56
+the other options. But remember these are going to be costly. So you will if
+2:36:02
+you if you decide to use eight GPUs then you will pay eight times the price. But
+2:36:07
+here I think one GPU is enough. So I will I will go through Google Collab. I will wait for this to train for let's
+2:36:14
+say an hour and then stop the training. look at the loss functions and then
+2:36:19
+start to evaluate the model and here even though you see that here how many how many values are here so I think this
+2:36:25
+is 136 million batches that's a lot we could for example stop the training at
+2:36:30
+any at any time and evaluate the model because at least we will get something that was trained for a th00and debugs or
+2:36:37
+sorry 1,000 batches or 2,000 batches we don't need to go through the whole data set because it's it's relatively big
+2:36:44
+also I want to show Here is the Atlas set data set. It is available on hugging phase. This is how
+2:36:51
+I I loaded it. It contains two splits, the training splits and the test split.
+2:36:57
+Here in the training split, we have 1.17 million rows. And on the test set, we
+2:37:03
+have 2,000 rows. So basically, I looped over all examples. And here is how I
+2:37:08
+extract the text. And I concatenated that into this where I appended everything into this list. And at the
+2:37:15
+end I converted that into a sequence of text. And finally I saved it as a text
+2:37:20
+file. Here I am just showing you how to load a data set from hugging face. But if you are not I mean this is this data
+2:37:27
+set is in Arabic. So maybe you are not interested with this data set. But if you want to load a data set in English
+2:37:33
+or French or Chinese, then look for the data set that that solves your problem
+2:37:40
+and change change the name here in the load data set method. So after saving
+2:37:46
+this then I went to the the bite pairing coding notebook. I have loaded the data
+2:37:52
+set and here as I told you in the slides the data set contains 900 million
+2:37:58
+characters. That's a lot. If I try to load everything and train the tokenizer
+2:38:04
+here with the train method, I I am not able to do that because loading the whole data set consumes all of my memory
+2:38:12
+and trying to train the model will crash VS code every single time. So what I did
+2:38:17
+instead I will just read the first 10 million characters from the Atlas set
+2:38:22
+data set and train the BP algorithm on these 10 million characters. This helps
+2:38:29
+prevent the out of memory error. But still with 10 million characters, this
+2:38:35
+process took 6 hours. As you can see, it took 6 hours to train the BP algorithm
+2:38:40
+on 10 million characters. Just imagine if I tried to train the tokenizer on 100
+2:38:46
+million characters or let alone 900 million. So that would have taken days and days to finish. And here I also
+2:38:52
+increased the vocab size because we have increased the the size of the data set.
+2:38:58
+After training basically you go through the the rest of the notebook and you save the new tokenizer and after that I
+2:39:06
+have basically came to here and I have rechanged the notebook so that I can and
+2:39:12
+one thing before that so after encoding the after getting the tokenizer I
+2:39:17
+encoded the atlas set data set and here this took I think 45 minutes to finish
+2:39:24
+and I was again tokenizing 100 million characters at a time So don't token
+2:39:29
+don't try to encode whole data set at once because that will use a lot of memory again. So here I decided to
+2:39:36
+tokenize 100 million characters in each iteration and at the end I ended up with
+2:39:42
+a data set that contains 300 million tokens. That's a lot. When we started
+2:39:48
+this course the data set that I had contained just 300,000 tokens. That's a
+2:39:54
+lot of difference. That that data set was very small. But this one is is big.
+2:40:00
+And at the end, as you can see, I am saving this as a numpy array. And here I
+2:40:06
+am deleting it just to free up memory. But after after running this cell, just restart the notebook to free up the
+2:40:12
+memory. And then if you want to use this as a memory mapped file, when using the
+2:40:17
+load method, just provide memory mapped mode to read only. And here is after
+2:40:24
+loading the data set it will not consume the whole memory. So here it's just showing you the shape but it is not
+2:40:31
+loading the values. Okay. So these are the things that I have done in order to prepare the data set and in order to
+2:40:37
+prevent the out of memory exception and you want to do this process locally because I mean you could do this here in
+2:40:44
+Google Collab if you want but don't do that here because here you will be you
+2:40:49
+will be because this process takes hours and you will be charged for those hours and you did not train you want to use
+2:40:56
+this just to train the model. So the pre-processing should be done either locally or try to rent a VM that doesn't
+2:41:03
+have a GPU because it will be cheaper and do the pre-processing there. So this is I want to warn you never do the
+2:41:11
+pre-processing when renting a GPU because you want to to use those just
+2:41:17
+for training. So that's it. Uh here we were able to to evaluate the model on
+2:41:23
+the after the first 100 batches. And here we are we are evaluating the model
+2:41:29
+again. So I will wait let's say let's train the model for a thousand batches and I will come back. Okay. So I have
+2:41:36
+stopped the training because it it was taking a lot of time. So here I trained it just on 500 batches. Here you see
+2:41:43
+that the loss is fluctuating and this is because we are when we enter evaluation
+2:41:49
+mode we take a thousand batches randomly and in the data set we have millions of
+2:41:54
+batches. So this is why each time when we evaluate the model we see different
+2:42:00
+values for the loss. But if we kept training further and further then the
+2:42:05
+model would have seen a lots of examples and then the loss will will adjust accordingly. But let let me just copy
+2:42:13
+this. So this is exactly what I got here when I was training the model locally.
+2:42:19
+You can see that the loss was fluctuating and it stayed relatively the same. Here are the values. So let me
+2:42:26
+remove this. I don't need it. And let's just take this. I want to see the generation. Okay. So here we have
+2:42:31
+evaluation mode. We are generating 50 tokens. Okay. So let's see. Okay. Not
+2:42:36
+bad. Yeah, this this is this is not bad actually. So the the model was able to
+2:42:41
+pick some some text from the training sets. And this is yeah, this is not bad
+2:42:46
+for 500 epochs. So but as you can see the problem is that with this approach we need to wait a lot instead of looping
+2:42:53
+over the whole data set because this is what I was doing. So here split index bas let's see so total data to process
+2:43:00
+is equal to this value. So here we have 273 million batches that's a lot. So
+2:43:08
+what you can do instead is that in each iteration take let's say a th00and or
+2:43:13
+10,000 batches and do this for 100 epox and then you will get at least a model
+2:43:18
+that was trained on let's say 100,000 batches instead of waiting to train on
+2:43:24
+the whole data set or if you don't want to change this then what you could do is the the same thing that I did here so
+2:43:31
+train as much as possible let's say train for an hour or two and then just stop the training and then you will get
+2:43:37
+the latest model that was trained on the last the latest batch and use that model
+2:43:42
+and see if it works well or not. So as I said Google collab and Kaggle are similar both of them give you free free
+2:43:50
+GPUs but don't forget that here the training will take a lot of time and another factor that affects the training
+2:43:58
+speed is the size of the model here I have increased the size to 55 million parameters before it was I think 11
+2:44:04
+million also don't forget when you finish disconnect the runtime so that you give other people access to the GPU
+2:44:11
+and yeah that's how you train on Google Collab. And finally, if you decide to
+2:44:17
+stop the model because here I am saving the checkpoint after 10,000 batches, at
+2:44:23
+least try to run this manually after you stop the cell from running so that you
+2:44:28
+save the model the checkpoint at the the last checkpoint. Okay. So now I have
+2:44:35
+stopped disconnected the runtime. I'll close this and I'll close Kaggle and go
+2:44:41
+to Lambda. So the first thing you need to do here is to login. So let me click
+2:44:46
+on this button. I think yes I have already created my account. So that's
+2:44:52
+why I logged in automatically. And then you need to go to settings and enter the credit card because if you try to launch
+2:44:58
+an instance you will not be able to do that because you need to attach the payment method. So just click on add
+2:45:05
+payment method and you will get you will go immediately to settings to specify or
+2:45:11
+to enter that information. Okay. So I have tried adding my credit card and it
+2:45:17
+did not work because I was not expecting this. So here they say that the purchase is being made from a country without
+2:45:22
+support. This is the error that I got. And here are the supported countries. And I live in Morocco. And I cannot use
+2:45:29
+a VPN to pretend that I'm from the one of these countries cuz they will flag
+2:45:34
+that as suspicious. So that's that's bad. So now I need to to look for another provider. Okay. So I am back and
+2:45:42
+I have changed some things in the same notebook. So I will clean it and add it to the list of notebooks later. But what
+2:45:48
+I did Oh, so so here it says that the estimate loss function is not defined. So let me run everything. Let's run
+2:45:54
+this. So now it should it should work. And here is as you can see it is saying that the training will take 5 hours. So
+2:46:02
+that's not bad. Before it was saying uh 80,000 hours or something. So let me show you. And here I am using 6 GB of
+2:46:09
+VRAM. And I still have 1 GB left that I can use if I want to. And the model size
+2:46:14
+is I think 30 million parameters. Yes, 39 million parameters. So that's
+2:46:20
+relatively big. Here I have thousand batches that I will use to estimate the
+2:46:25
+loss. But here is the change. Here I have two methods. The overlapping batches and the non-over overlapping
+2:46:31
+batches. You know each example contains 1,024 tokens because this is the block
+2:46:38
+size that I chose. So to to go to the next example, we will shift the index by
+2:46:44
+one. So this is the first method overlapping batches. And this is why the
+2:46:50
+size of the training was big because we were overlapping the data that we have
+2:46:55
+in the training set. But in the non-over overlapping batches, we first try to
+2:47:00
+calculate how many nonover overlapping blocks. So let's say that I took the
+2:47:06
+first,024 tokens. The second example will skip the first 1,024 and take the
+2:47:12
+next block size. And this way we will have non-over overlapping examples. And
+2:47:18
+this is why the number of blocks reduced is reduced significantly from I don't
+2:47:24
+know how I think it was 69 million or something to 66,000. That's a big difference. So I
+2:47:31
+think instead of running this on the cloud I think I can run this locally. So 4 hours is not that much. So I will just
+2:47:39
+increase the performance and wait for this to to complete and I will come back. I am back and as you can see I
+2:47:46
+have retrained the base model on this Atlas set data set and I have done this
+2:47:52
+for 42 hours. Let me show you. So here so 42 hours is a lot of time. So I
+2:47:59
+didn't leave my laptop on for 20 for 42 hours. That's a lot. So what I was doing
+2:48:05
+here I was playing so I was training one epoch at a time. So one epoch was taking
+2:48:11
+6 hours on average. So I train for 6 hours. I save the model and then another
+2:48:19
+day I come back. I load the checkpoint and I train again. And just to show you
+2:48:24
+in the output folder if I open pre-training base because here I was
+2:48:30
+experimenting with different model sizes here. As you can see I have the checkpoints. So this is the first epoch
+2:48:36
+and this is the sixth epoch. So this gives me I mean I have another epoch but I forgot to save it. But in total I
+2:48:44
+trained this model for 42 hours. And sadly I did not show the loss functions because I forgot to to concatenate the
+2:48:52
+lists. So that's so that's uh I showed the the loss from the first epoch to the
+2:48:57
+last epoch. So I forgot to do that. This is why I did not plot the loss. And here
+2:49:03
+when I was inferencing the model here you can I mean if you know how to read
+2:49:08
+Arabic this is good text. It's not that bad. I will take it. I will open Google
+2:49:13
+translate. Let me paste this and let's start reading. What are the main reasons that made the French remain impressed?
+2:49:20
+But the Europeans were based on the idea of where was he and this. So you can see
+2:49:26
+that I mean the text is not is not coherent but the model knows how to put
+2:49:31
+words together. This is just a base model. So don't expect it to give you
+2:49:36
+accurate responses for hundreds of tokens. At a certain point that will
+2:49:42
+degrade and the model will start doing something else because it was not instructed to do something like
+2:49:48
+answering questions or discussing with a user in a conversation manner. So let's
+2:49:54
+go back to the notebook. So this is what I did and I have created the notebook. So everything is clean and then I
+2:50:00
+started doing the finetuning. In the finetuning as I said you can fine-tune the model to do basically question
+2:50:08
+answering. This is QA. This is the first version or the first fine tuning that we
+2:50:14
+can make and I also created a supervised fine tuning data set. I have created it manually and it is available on GitHub.
+2:50:22
+The data set is very straightforward. We have two roles. We have the user role
+2:50:27
+and the assistant role and as you can see here we have a list because this is a conversation. So in data set we have a
+2:50:34
+list of conversations and in each conversation we have two roles the user
+2:50:40
+role and the assistant role. In QA what you do you take the user role and you
+2:50:46
+expect or you train the model to generate the assistant role without any context. I mean you could add another
+2:50:53
+field which is called context to help the model understand how to generate the
+2:50:58
+answer but this is the basic form of QA. Here after loading the data set I have
+2:51:04
+101 conversations. Let's load the tokenizer and here I have a system
+2:51:10
+message. So if you want the model to behave in a certain way make sure to add
+2:51:16
+this this system message before the user question. Here is the system entry. In
+2:51:23
+this cell, I am trying to make sure that all conversations do not exceed the
+2:51:31
+block size. When I run this, I get I see that the longest entry in the data set
+2:51:37
+contains just under 500 tokens. So, we are good to go. And now we need to add
+2:51:42
+special tokens to our QA pairs. Here are the tokens. We have start start turn.
+2:51:50
+This marks the start of a turn. End turn. We have the separator and end of
+2:51:55
+text. The format message is simple. For example, if we take the user turn, we
+2:52:01
+will start with the start turn token. Here we are going to have either user,
+2:52:06
+system or assistant. This is the roles that we have. Then we are going to add a separator to separate the role from the
+2:52:13
+message. And finally we we will end this turn with the end turn token. Now we are
+2:52:20
+going to create our finetuning data. Remember that inside the JSON data set
+2:52:25
+that I showed you on my GitHub repository contains a list of a list of
+2:52:31
+dictionaries. So we need to turn this into a list of QA pairs. How do we do
+2:52:36
+this? It's simple. So we get for each conversation in data we are going to loop over the messages. If this is the
+2:52:44
+user role we are going to add the system message. I mean this is optional. If you don't want to add system message to the
+2:52:51
+QA pairs then remove this line. You don't need it. But if you want to have it then before taking the user role make
+2:52:59
+sure to add the system message. So we are adding it to this concatenated
+2:53:04
+messages string and after that we add the user role because message contains
+2:53:10
+the user role. So this is the first turn in conversation. it it is going to be
+2:53:17
+the user turn. After that in the second iteration we are going to get the
+2:53:22
+assistant turn. We are going to do the same thing. We are going to add the message but this time we need to to end
+2:53:30
+this string with the end of with the end of text token because this is an example
+2:53:37
+that the LLM will be trained on. And after that we tokenize this message. we
+2:53:42
+add it to the finetuning data and then we start over. So we are resetting for
+2:53:48
+the next QA pair. So this is what this cell does and if I print the length I
+2:53:56
+get 256 QA pair. If I print the first one
+2:54:01
+you can see that here this is start turn. So this is the system prompt. Here is the system message. We end that turn.
+2:54:08
+we start the user turn and finally we start the assistant turn and at the end
+2:54:14
+we add the end of text token. So this this is how the QA pairs are going to be
+2:54:19
+formed. If you remember because we have different sizes we need to make sure
+2:54:24
+that our train examples have the same size so that we can batch the data so
+2:54:30
+that we train efficiently. Before what I used to do basically I just keep padding
+2:54:36
+until I reach the block size but because sometimes we have just few tokens we are
+2:54:41
+going to add a ton of padding tokens and this is wasteful. So what I will do instead I will say I will try to compute
+2:54:48
+the maximum sequence length from the finetuning data and here it gives me 331 tokens and then I'll just keep
+2:54:55
+padding until I reach this value. This is more efficient instead of padding until I reach 1,024. So this cell I
+2:55:03
+haven't changed it. This is exactly what we have done before. And you can see that here I already I only have the
+2:55:10
+training set. I will modify this to add the validation set. But because I was just experimenting with this, I I only
+2:55:17
+have the training set. So if I run this, you can see that I have 256 examples and
+2:55:23
+each example has this shape. So the the max sequence length is 331. Now we
+2:55:29
+create the data loaders. Again I'll come back and I will add the validation set shortly. And here the batch size is 16
+2:55:36
+because we are working with smaller sequences. So we could increase the batch size a little bit. And then the
+2:55:43
+rest is the same. So you load the checkpoint. So this is the base model. And here we are loading the late latest
+2:55:49
+checkpoint. Good. So all keys matched successfully. If you want to use the
+2:55:55
+base model for inference just to make just to make sure that the the weights were loaded correctly, you can do that
+2:56:02
+here. This is the estimate loss function. Save checkpoint. So they did
+2:56:07
+not change. And here we have the training loop also. We did not this one did wasn't changed. The only thing that
+2:56:13
+we changed is the data set. And now you can train. So I have done that. So I have trained for 100 epochs. And here
+2:56:20
+because I I only have like 100 conversations, it's not that much. So the model will will will overfit the
+2:56:27
+data quickly and this can be seen. So here we started the training loss was 6.8 and we immediately went the loss
+2:56:35
+went to two and then zero. So because the data distribution in the in the fine
+2:56:41
+tuning data set is not that large, the model is able to learn it very quickly. But even if the model will overfit, I'm
+2:56:48
+just doing this for experiment because I I am saving the model after the end of
+2:56:53
+each epoch. So even if it overfits at let's say at epoch number 10, I can I I
+2:56:59
+can load the previous checkpoints where the model did not overfit. So this is what you do. And then so let me clear
+2:57:06
+this because we have a lot of things in in the output. So you can see that the
+2:57:11
+plot this is how it looks like in during training. So yeah, I have trained this a lot but I could have trained just for 10
+2:57:18
+for five epox or 10 and then in inference I will explain the code but
+2:57:23
+just to show you how the output looks like here is so I have asked the model what is your name it's it said it said
+2:57:31
+the name because I have mentioned this in the system prompt and then it said is there anything I can help you with so
+2:57:37
+this is good but as I said because the the supervised fine tuning data city is
+2:57:43
+super is so small. If I ask something that the model has never seen, it will
+2:57:48
+hallucinate things. It will say things that that are not that are not good. So, let's try this. Here is the new prompts
+2:57:54
+that I will ask the model. Who won the 2006 World Cup? I know that this this
+2:58:01
+information does not exist in the supervised fine tuning data because I have created it. So, let's see the
+2:58:07
+answer. Okay, so the model says here Argentina. Is this correct? Let's see. And the answer is Italy. So as you can
+2:58:15
+see this is just to show you that the model does not I mean if you have a good base model because here my my the base
+2:58:22
+model that I have trained has only 40 million parameters and I have trained it for 42 hours. I could have trained it
+2:58:29
+for 100 hours or two I mean 100 hours is it's a lot but still the model is not
+2:58:35
+that big. So it does not have a lot of parameters to re to memorize a lot of information. So this is a limitation but
+2:58:42
+the solution is very simple. You see that for example open source models have very big sizes. One of the latest models
+2:58:49
+that was open source is geometry from Google and the model has billions of
+2:58:54
+parameters and currently my base model has only 40 million. So you see there's a huge gap in the in both the model size
+2:59:02
+and the training data set size. But as I said the solution to this is easy. just keep scaling and you'll have good
+2:59:10
+performance at the end. Okay. So I have showed you what I have done. Now let me go back to and add the validation set or
+2:59:18
+the validation to this so that we can see when the model overfits in the plot.
+2:59:24
+I mean yes it it is very easy to see when whenever you see that the loss reaches zero that's that's a that's a
+2:59:31
+good sign that the model was overfitting. But let's also add the training training loss uh or sorry the
+2:59:37
+validation curve so that we can immediately recognize when the model was
+2:59:43
+overfitting. I have updated the notebook and I have added the validation set
+2:59:49
+also. So let me run the these cells. Okay, we have seen these things. Okay,
+2:59:55
+so here when we get the training data tensor, we are going to split it into two sets. We are going to take 95% of
+3:00:03
+the data as training and the rest will be in the validation set. So here are
+3:00:09
+the numbers. We will have 243 QA pairs during training and 13 during
+3:00:15
+validation. Let's make sure to run this cell. And here I have added these two
+3:00:20
+variables so that I can use the validation loader during the loss estimation. And here I can get a batch
+3:00:28
+from the training loader and the same for the validation loader. Now let's load the checkpoint. I will not use the
+3:00:35
+model for inference in inside the estimate loss. I just copied this from the previous notebooks. So nothing new
+3:00:43
+here. I have added the validation losses list. And when I call the estimate loss
+3:00:48
+function, I make sure to pass the validation loader. And we get the losses dictionary from it. can extract the
+3:00:55
+training loss and validation loss. So now let me run this. And here before running this make sure that whenever you
+3:01:02
+fine-tune a model to use a small learning rate so that you don't change
+3:01:08
+the neurons or the the weights abruptly so that you change them smoothly. And
+3:01:13
+here I will just train for 10 epochs. So iterations here means epochs because we
+3:01:20
+saw that here for for instance that we quickly reach I mean a low value for the
+3:01:28
+for the loss. So I don't want to go for more than 10 epox and we will see maybe
+3:01:33
+we need to to train for less than this if the vish loss starts to go up but for now let's just train for 10 epox and I
+3:01:41
+will do the the evaluation after two batches. So let's run this and here let
+3:01:47
+me bring ghosty. So as you can see here I am using 6 GB for the the fine tuning
+3:01:53
+and let's see. So we started at around 7. Uh so it yeah so so far so good. The
+3:02:00
+both train and validation are going down and we are still on the first epoch. So as you can see the loss starts going
+3:02:07
+very very quickly. In here I used one E negative4 as the learning rate. So we
+3:02:12
+could for example use one E minus 5 to to slow down to slow down the the speed
+3:02:17
+at which the loss is decreasing but so far so good. There is no sign of
+3:02:22
+overfitting. So I will wait for this to complete and I will come back. I am back and the training finished. So it took
+3:02:30
+just 3 minutes because the data set that I have is not that big. So let me clear
+3:02:35
+everything and here I will plot both training and validation loss. And as you
+3:02:40
+can see the curves looks great. At the end we start to see that the model was
+3:02:45
+not improving further but there is no overfitting. This is good. So let's use
+3:02:50
+this model for inference. Here I have changed the the folder to run number
+3:02:57
+two. Let me see how many checkpoints I have. So let's take let's let's take the first one to see to see if the model was
+3:03:05
+able to pick up the answer format because here remember we are using special tokens to form basically the the
+3:03:13
+input and the outputs. So let's ask the same question who won the 2006 world
+3:03:18
+cup. Okay, as you can see here the model is is generating. So here is basically
+3:03:24
+it's generating random stuff because this is the first iteration. So this is completely nonsense. And also I want to
+3:03:30
+mention that inside the GPT if I go here to the model script we already had the
+3:03:38
+generate method. Now I added another one which is called advanced generation. I
+3:03:43
+mean if you have played a little bit with LLMs these concepts are familiar to you. temperature, top K, top P are used
+3:03:51
+to basically when when we generate from the model, we can alter how the model
+3:03:56
+generates responses. Here basically in the generate method, we were getting the
+3:04:02
+probabilities and we were getting the token that has the highest probability. This is called greedy because we will
+3:04:08
+already we will always have these same answers. But here with these three variables whenever we run the notebook
+3:04:15
+we will get different responses from the model and yeah basically this is an
+3:04:21
+advanced generation method that's that I have added and this is exactly what I used here. Okay so this is the first
+3:04:28
+checkpoints the model was was starting to to get familiarized with this new format. Let's go to the third epoch and
+3:04:37
+let's see the the output from the model. The good thing is that the model was able to to basically generate the end of
+3:04:45
+text token because here I was generating one token at a time and I was I will stop if I get the end of text token or
+3:04:52
+the end turn because at the end we will have end turn and end of text tokens com uh next to each other. So yeah this
+3:04:59
+means that the the QA format that we created the model was able to use it or
+3:05:05
+to get familiarized with it. So basically we start with the system prompt. Here it is. So this is the
+3:05:11
+input. We start with the system prompt. We add the user message and we add the
+3:05:18
+assistant. But we stop here and the model because he he was trained on many examples in this format knows that that
+3:05:25
+it should continue this format and it should only generate the answer part. But here the answer has nothing to do
+3:05:32
+with this. So let's go and check the sixth checkpoint. Okay. So nothing.
+3:05:39
+Let's go to ninth checkpoint. And as I told you here, we can play with these
+3:05:44
+values to basically get different responses. As I said, this question does
+3:05:50
+not exist in the data. But this is why I'm not getting a correct answer for
+3:05:56
+this. I will change this to ask because in the system prompt I gave the model a
+3:06:01
+name. So let me ask about that. Okay. So I have asked the model, what is your name? and it was able to give me the
+3:06:08
+name that I mentioned in the system prompt. But I don't get this answer all
+3:06:14
+the time. So sometimes I will get this answer. Sometimes I get other answers that are not related to the question.
+3:06:20
+I'm assuming that because I have a small base model, I was not able to get a model that understand the language very
+3:06:27
+well because here if I ask the question differently, the model might respond
+3:06:32
+differently. But at least we have we have been able to yeah get something that works very well from where we
+3:06:40
+started off because we have scaled the pre-training data. I have created a supervised pine data set that works very
+3:06:47
+well that that contains a lot of topics. So yeah, I mean if you want to get something that works even better than
+3:06:53
+this, as I said, all you need to do is to increase the model size to increase
+3:06:59
+the data and eventually you will get something that understands a lot of things in in your language. And at the
+3:07:06
+end, if you want to get something that works well, you can use QA like what I did here. Or if you want you can
+3:07:13
+formulate the problem so that you use the whole conversation so that you can have I mean so that you can talk to the
+3:07:19
+model in a conversational way because here if I ask something that that is
+3:07:25
+related to something that I said previously the model will not have the context so we need to train on that
+3:07:31
+format and this is why I have created this supervised fine-tuning data set
+3:07:36
+because I mean it is formed from a lot of messages and those messages are combined into conversations. So
+3:07:45
+currently we have done QA later I will I will try to basically modify this
+3:07:50
+notebook so that I can train with the context. But again because here we did
+3:07:56
+not get something that understands the language very well. I'll assume that even if I train on the on the whole
+3:08:03
+conversation sometimes I might get some good results but not all the time. But
+3:08:09
+this is expected. I have limited resources. I have I can't train very big
+3:08:14
+models on my laptop. But maybe in the future I might do a bigger training run
+3:08:19
+if I keep gathering more data and hopefully I get something that works very well on the Moroccan Daria
+3:08:26
+language. We have reached the end of this video. As you can see, I have added many notebooks. So I I will make sure to
+3:08:33
+to clean them and then I will push them to the to the GitHub repository. I hope that you find this that you found this
+3:08:39
+video very interesting. Maybe this video will be the end of this course. This is what I said in the previous video. But
+3:08:46
+maybe I might add other notebooks so that I show you how to use because this
+3:08:52
+here we train the model, we train the models, we train the tokenizers from scratch. We have used only PyTorch. But
+3:09:00
+to run these notebooks, you have to do a lot of uh a lot of work. So if you want to go very quickly, I'll maybe I'll add
+3:09:07
+those notebooks to show you how to use those classes because I mean you have just one line. You create a class and
+3:09:13
+then you call the train method and you are done. You train the model, you push it to hugging face and later if you want
+3:09:19
+to retrieve it, you can do that. So yeah, maybe I will add a a video on that
+3:09:24
+and um I will see. I'll try to do the finetuning with contacts with
+3:09:30
+conversations. If I get good results, I will I will I'll make sure to to make a video on that. But if I don't get
+3:09:37
+promising results, I'll just make sure to include the notebook and I don't think I will make a video on it. Keep an
+Bonus
+3:09:44
+eye on the GitHub repository there. You will find you will find if I have updated it or not. See you next time. Hi
+3:09:51
+everyone, welcome to this bonus video. In the previous one I have said that I
+3:09:57
+will try the conversational format and if that worked I will upload another
+3:10:02
+video. So you are watching this video. This means that the conversational format worked great. So this is the
+3:10:09
+previous method that we used used QA. This is how we structured basically the
+3:10:15
+input and now I have added two other notebooks. So let me close this one. So here we have let's scale fine-tuning
+3:10:22
+conversation but with no masking. Here we have two methods. So it's the same
+3:10:27
+thing. So we are using the conversational data. We can add a mask or not add it. So let's start with the
+3:10:34
+with the first one. No masking. Look everything will stay the same. The only
+3:10:39
+thing that will change is this diagram that explains how we form the data that
+3:10:45
+we will use in training. So here is the the an example of a conversation. We
+3:10:50
+have the system message user assistance user assistance and you can keep adding
+3:10:55
+more turns to the conversation. If you want to ex exclude the system message you can do that. So the first thing you
+3:11:02
+do is you take the first turn. So this is what I have done here. I took the system message user and assistant and we
+3:11:09
+will consider this as an example that the model will be trained on. And then the difference between this and QA. So
+3:11:15
+this is QA. The second iteration will be to include the next turn. So here we
+3:11:21
+still have the first turn but we added the second turn. So you keep increasing
+3:11:26
+the size of the of the example until you finish using all the turns in the
+3:11:31
+conversation and in each example you add the end of text token. And here look so
+3:11:38
+here we have system user assistant and here in the assistant term. So you can see that here start turn assistant at
+3:11:45
+the end of that turn we add the end of text token but here we remove it. So let me let me find the first assistant turn.
+3:11:52
+So here is the first assistant turn you can see that we have start turn assistant here is the message and here
+3:11:58
+is the end turn and you can see that we have omitted the end of text because we are going to add it to the last
+3:12:05
+assistant turn. So here you can see that here is the last assistant turn and we add the end of text token and this will
+3:12:12
+teach the model that the only thing that varies is the end of text token. It will it will notice that we add this token
+3:12:20
+whenever we end the assistant turn and this will steer the model to basically
+3:12:27
+try to complete the sentence and end it before and end it when when it answers
+3:12:32
+the question and not continue the generation before I have I did not do this. So basically I converted
+3:12:39
+everything to into one giant example and then the model was trying to mimic this
+3:12:46
+structure. So when I start by giving a question the model will generate the
+3:12:51
+assistant turn and then it will not generate the end of text when it finishes that turn. It will start
+3:12:57
+generating the user turn then the assistant turn and it will never stop. I mean it will stop at some point but we
+3:13:04
+don't want the model to mimic the data. We wanted it to answer the question and then stop. So by doing this we teach the
+3:13:10
+model that the only thing that varies is the end of text token and you should you should place it when you finish the
+3:13:18
+assistant turn. As I said this is the only thing that changed and here is how I implemented that. And again just to
+3:13:24
+show you that this is exactly the same thing I have here. This is the previous notebook and here is the new one. So you
+3:13:31
+can see that here we have the tokens there is this is the form message function and here when we arrived at the
+3:13:38
+assistant turn basically we concatenate the message and then we add it immediately to the finetuning data and
+3:13:46
+start over. So here with this approach we are going to have only QA pairs in
+3:13:52
+the finetuning data list. But here notice that everything is the same. When
+3:13:57
+we arrive at the assistant turn, we are going to add that to the finetuning
+3:14:03
+data, but we are not going to reset the message. We are going to keep adding to the concatenated messages string. And
+3:14:11
+another difference is that here we want to add the system message only if this
+3:14:16
+string is empty because we don't want to add the system message in every turn. We
+3:14:21
+want to add it only once. And another change that I have made look at here when in the assistant turn we add the
+3:14:28
+end of text token before tokenizing. But here I don't do that because as I said I
+3:14:33
+want the end of text token to appear only at the last occurrence of the
+3:14:40
+assistant turn. So this is what I what I did. So I only add the end of sequence or the end of text token if I want to
+3:14:47
+tokenize that sequence. So, as I said, this is the only difference between this notebook and the other one. So, let me
+3:14:54
+close this one. Let me increase the font. And let's look at the rest. So,
+3:15:00
+here's an example. So, if I look at the first example in the finetuning data
+3:15:05
+list, you can see that here is the system message. Here is the user's turn
+3:15:10
+and the assistant turn. And as you can see, we have the end of text token. So, because the first I know that the first
+3:15:17
+conversation has multiple turns. So the second element in this list will continue on this. Look here we have this
+3:15:24
+string. It's the same one as this. And here we have the end of turn token like
+3:15:31
+like here but we removed the end of text token. So the next turn should be the user's turn. And in and here it is. So
+3:15:38
+then the assistant starts replying and at the end we add the end of text token. And we keep doing the same for the rest
+3:15:44
+of the entries that we have in the data set. So this uh and the rest stayed the
+3:15:51
+same and then I I went to fine-tune the model. Here is how the loss looked like.
+3:15:56
+So we had the training loss and validation loss. And here we start to see a sign of overfitting because the
+3:16:02
+gap between the training and validation loss is starting to grow. So, but the as
+3:16:08
+I said here in the training loop, I have made sure to save save the model after
+3:16:14
+the end of each epoch so that if the model overfits, I can easily load the previous checkpoints to get a model that
+3:16:23
+that trained well but did not overfit. And then in inference, we load a
+3:16:28
+checkpoint and start asking the model. And here I made sure to change the code
+3:16:33
+so that we can have a conversation. Here is an example. So I said what is your
+3:16:39
+name? The model responded with the name that I gave it. And then it said is there anything I can help you with? So I
+3:16:46
+asked how many planets are in the solar system. The model replied by saying in
+3:16:52
+our solar system. Then I said yes. The model wanted again asked the same
+3:16:58
+question in our solar system. I said yes in our solar system. And then it said in
+3:17:04
+our solar system there is Mercury, Venus, Earth, Mars, Jupiter, Saturn,
+3:17:12
+Uranus and Neptune. So you can see that the conversational format is working and the model stops when it when it when it
+3:17:19
+answers the question. And then I said thank you and then the model said you are welcome. If you need anything else,
+3:17:25
+just ask me. Again, this this notebook doesn't use any mask. Now, what is the
+3:17:31
+difference between no masking and masking? Let me explain. So, I will close this one and go to the other
+3:17:37
+notebook. Okay. Again, everything is the same. But here is the change that I have
+3:17:43
+made. Here I have just one one turn because I don't want to complexify this
+3:17:49
+diagram. Here we turn this into a sequence of tokens or into here we have a sequence of text but later we will
+3:17:55
+convert that into tokens and then here is what we what we mean by masking before in the no masking version the
+3:18:03
+model will see this sequence and it will learn to generate everything. So we will
+3:18:09
+start by this token and the model should should learn to generate this system token but we don't want that. We want
+3:18:15
+the model to take the input which is the system message the user turn and then
+3:18:22
+generate this part the me the the model answer the end of the end of turn token
+3:18:28
+and the end of text token. So the previous method worked because basically the system message is fixed so the model
+3:18:34
+can learn that during training and the the user the user turn is also um fixed
+3:18:41
+because we have these tokens. The only thing that changed is the question. So the by using no masking the model should
+3:18:49
+learn to associate a question to an answer. But that's a lot of work. What we want is to mask this part. So this
+3:18:57
+part will be used as an input. But the model should not learn to generate the system prompts or the user question. The
+3:19:04
+model should only learn to generate the this this part that it is not masked. So
+3:19:09
+in the masking notebook we are going to mask the this prefix I will say and only
+3:19:17
+evaluates the model when it starts to generate the rest of the sequence. Let
+3:19:22
+me show you how we did this. So here when we formed the data nothing changed but we we made the change in the data
+3:19:32
+loader section. So here when we create the X and Y pairs I have added this
+3:19:39
+method apply mask to target because when you are when you want to mask you don't mask the input you mask the target
+3:19:46
+because during the loss computation or the loss calculation we use the
+3:19:51
+categorical cross entropy. So let me go to the model script. Remember we have
+3:19:57
+this ignore index that we added as a parameter to this class and we are using
+3:20:03
+it here in when calculating the loss with the help of the cross entropy loss
+3:20:08
+function. When we mask those tokens basically we are not going to punish the
+3:20:14
+model if it does not generate the system prompt very well. We are going to punish it if it does not generate the
+3:20:21
+assistance answer very well. So this is the the the ignore index that we are
+3:20:27
+using and this is what we want to add or this is what we want to apply to the target. So let me open that image. The
+3:20:34
+apply mask to target will apply the mask to this section of the target. How am I
+3:20:40
+doing this? So you can see that here we in the assistant turn we have this this
+3:20:46
+string start turn assistant separator. This is what I have here. So start turn
+3:20:52
+assistant separator I am encoding this and converting it into a tensor. Why am
+3:20:58
+I doing this? Because I want to search for this sequence of tokens in the
+3:21:03
+target so that I know which indices I should mask. So here we get the
+3:21:10
+assistant turn tokens. Again this is a tensor. Here we have the list uh we are
+3:21:16
+getting the length of that sequence of tokens. And then we try to fan the last
+3:21:21
+occurrence of the assistant turn. Why? Because here, remember here we only used
+3:21:27
+one turn from the conversation. But if we had two or three, this start turn
+3:21:34
+assistant and separator sequence will be will be repeated three times and we want
+3:21:40
+to take the last one. This is why I said that I want to find the last occurrence. So last occurrence by default is set to
+3:21:48
+minus one because we don't know where it is. But then we are going to use a
+3:21:53
+sliding window approach to find this sequence of tokens. So we see that here
+3:21:58
+we use torch.all to compare two tensors if they are equal and here in the target
+3:22:04
+this is the window that we take. Basically this is a slice from the target and we are comparing those tokens
+3:22:10
+to the tokens that we got after encoding this sequence. If we find it then we are
+3:22:16
+going to change last occurrence to this value and here we are not using I
+3:22:21
+because I will give us the start start turn we want to get this. So we are
+3:22:26
+going to add the length of this sequence so that we arrive at this point and
+3:22:33
+after the for loop after finding the last occurrence we are going to replace everything from the start up to this
+3:22:40
+point with the padding token because this is the token that I am using as a
+3:22:45
+masking token. If you want to use minus 100 or another value, feel free to do that. But make sure to inform the cross
+3:22:53
+entropy loss function because it needs to know which index to ignore because if
+3:22:59
+you don't do that then uh nothing will happen. Here I have used the paddent token and when I instantiate the GPT
+3:23:07
+language model I gave I give this token as the ignore index. So this is how we
+3:23:14
+apply the mask and here this approach works only if you use right padding.
+3:23:20
+What do I mean with with right padding? So if you want if you add the padding here at the end of the sequence this
+3:23:26
+this approach works only for that case. If you decide to add the padding to the start of the sequence then we should
+3:23:33
+revert this and instead of starting at index zero we should start from the end
+3:23:39
+of the sequence and find the last occurrence. So here I should add a note
+3:23:44
+that this only works if you use right
+3:23:50
+padding and the rest is the same. So here we have batch size and let's look at an example from Y. I don't know if I
+3:23:57
+have restarted this notebook. Ah great I didn't restarted. So let's take the first I mean the first example and here
+3:24:05
+as you can see so the padding token is 16,388 and this is the part that we have
+3:24:11
+masked this is this is equivalent to this part that I have colored in black and the rest is the assistant answer and
+3:24:19
+if we compare this to to the input you can see that the input is not masked because we want to take everything and
+3:24:27
+give that as an input and start predicting these tokens that come after
+3:24:32
+the uh system and user terms and at the end we we have this is why I said that
+3:24:38
+here I have used the right padding approach. Awesome. So this is actually working and then the rest stayed the
+3:24:45
+same. So I have created the model here is where I specified that the padding token is used as in the as the ignore
+3:24:53
+index. So I loaded the model, I started the finetuning and then this is the loss
+3:24:58
+that I got and here because I only compute the loss in for few for few tokens the loss was uh bigger and we
+3:25:07
+start to see a lot of overfitting for this model but again you have the
+3:25:12
+previous checkpoints so we can load them and then so here we load one of them and
+3:25:17
+we start again we start chatting with the model again I always start with what is your name because I have mentioned
+3:25:24
+this in the system prompt and I want to to see if the model learned this or not and sure enough it did and then I said
+3:25:30
+how many minutes are in a day and then it said to me that in a day uh we have
+3:25:36
+1440 minutes and here it said that in our world there is roughly 1440 minutes
+3:25:43
+in a day so I find this interesting because I don't I don't I didn't mention this exactly like this in the in the in
+3:25:50
+the finetuning data set so but the model is starting is trying to be a little bit
+3:25:55
+creative because remember we are using the advanced generation method and we
+3:26:00
+can play with these values to control the behavior of the model. If you use the generate method then the model will
+3:26:07
+say will will give you the same answer every single time. So the model will not try to be innovative. And then I said
+3:26:14
+thank you and it said if you have anything just ask me. I've also added this part. So if you want uh let me show
+3:26:22
+you why why this one is important. So if I run this again so it gave me the
+3:26:27
+answer. If you ask a follow-up question and the model doesn't give you something correct. If you don't like the answer
+3:26:33
+and do you want to retry? If I try to do this we will add some we will add another entry to the to the
+3:26:40
+conversation. But we don't want to do that. To do this just uncomment this and this will remove. So let me show you how
+3:26:48
+you do this. So here is the answer. Here is the question and here is the answer. If I don't like that answer or if I want
+3:26:54
+to see if the model generates something else I I will come here uncomment this
+3:27:00
+and generate and you can see that here we did not add another entry to the conversation but we removed the previous
+3:27:06
+entry and we replaced it with a new one. So we can keep repeating until you so as
+Conclusion
+3:27:12
+and as you can see because we are using different this method we get each time we get something something new from the
+3:27:19
+model. Great. So I will uncomment this and yeah that's it. So this is what I
+3:27:24
+wanted to show you in this bonus video. Uh I was surprised because this this
+3:27:29
+worked. Uh I'm very happy with the results. The model is is small. Uh so
+3:27:35
+this is just a 42 million parameter model. Let me double check that value.
+3:27:41
+Yes, as you can see the model has only 42 million parameters. The data set that I have used during pre-training contains
+3:27:48
+900 million characters which after tokenizing it contains almost 300
+3:27:55
+million tokens. It's a big data set compared to the first one that we have used in the start of this course. But
+3:28:01
+still the modus is uh is not that big. So I have seen during inference when I
+3:28:09
+was testing the model that it doesn't understand a lot of concepts and if I
+3:28:14
+try to ask different questions um that cover a lot of topics the model doesn't
+3:28:20
+know how to answer that because I think because it is small and it it doesn't know as I said different topics it
+3:28:26
+doesn't um know how to answer if if the question is out of this distribution. So
+3:28:34
+these are the limitations that I have found but overall this is great and I
+3:28:39
+think the next step is just to increase maybe the size of the model increase the size of the supervised fine tuning data
+3:28:46
+set to get some an assistant that works well in your particular language. I hope that you have enjoyed this series. This
+3:28:53
+is the last video. Um I'm sure that uh that I will not uh up that I will not
+3:28:59
+upload other ones and I hope that you enjoyed it. Feel free to reach out to me
+3:29:04
+if you have any questions and I will be very happy to help you achieve what you want to achieve.
+
