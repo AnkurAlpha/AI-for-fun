@@ -1,0 +1,31 @@
+#!/usr/bin/env python3
+# for noobs: make it executable before running with chmod +x
+import sys
+from tokenizers import ByteLevelBPETokenizer
+from pathlib import Path
+base = Path("../tokens/") / "bpe_tokenizer"
+vocab_path = base / "vocab.json"
+merges_path = base / "merges.txt"
+tokenizer = ByteLevelBPETokenizer(
+    # also needed to load for retrain the same tokenizer
+    str(vocab_path), str(merges_path))
+
+
+def print_token_analysis(s: str) -> None:
+    out = tokenizer.encode(s)
+    print(f"tokens: {out.tokens}")
+    print(f"ids: {out.ids}")
+    text_back = tokenizer.decode(out.ids)
+    print(f"decoded text: {text_back}")
+
+
+if __name__ == "__main__":
+    print(f"argc = {len(sys.argv)}")
+    print(f"argv = {sys.argv}")
+    print()
+    if len(sys.argv) == 1:
+        print("""Error: pragram ran without argument\n
+              run :\n
+              .\\program <string>""", file=sys.stderr)
+    text = " ".join(sys.argv[1:])
+    print_token_analysis(text)
