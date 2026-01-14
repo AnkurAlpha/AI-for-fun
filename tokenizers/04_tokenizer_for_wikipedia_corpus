@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 # for data analyzing and extraction
 import csv
 import pandas as pd
@@ -99,6 +101,24 @@ def extract_clean_text(csv_path: Path, out_txt: Path,
         print(f"saved cleaned text to: {out_txt}")
 
 
+def ignite_training(inp: Path, out: Path) -> None:
+    tokenizer = ByteLevelBPETokenizer()
+    tokenizer.train(
+        files=[str(inp)],
+        vocab_size=30_000,
+        min_frequency=2,
+        special_tokens=["<s>", "</s>", "<pad>", "<unk>", "<mask>"]
+    )
+    tokenizer.save_model(str(out))
+    test_string = "Hello! This is small test by AnkurAlpha"
+    enc = tokenizer.encode(test_string)
+    print(f"test string: {test_string}")
+    print(f"encoded tokens: {enc.tokens}")
+    print(f"encoded ids: {enc.ids}")
+    print(f"decoded text : {tokenizer.decode(enc.ids)}")
+    print(f"tokenizers saved: {out}")
+
+
 if __name__ == "__main__":
     print("Please download the corpus from : \
           \n\thttps://www.kaggle.com/datasets/gzdekzlkaya/wikipedia-" +
@@ -114,3 +134,6 @@ if __name__ == "__main__":
     inpdata = inpdatadir / "wikipedia_text_corpus.csv"
     # read_csv_peek(inpdata)
     extract_clean_text(inpdata, out_text)
+    final_tokens = Path("../tokens/") / "bpe_tokenizer_2"
+    final_tokens.mkdir(parents=True, exist_ok=True)
+    ignite_training(out_text, final_tokens)
