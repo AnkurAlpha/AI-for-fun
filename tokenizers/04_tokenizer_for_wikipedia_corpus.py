@@ -10,6 +10,9 @@ from pathlib import Path
 # for tokanization
 from tokenizers import ByteLevelBPETokenizer
 
+MANY_NEW_BLANK_LINES = re.compile(r"\n{3,}")
+# if 3 or more blank lines are there then handle it
+
 
 def bump_csv_limit() -> None:
     try:
@@ -49,20 +52,65 @@ def read_csv_peek(path: str) -> None:
             n_cols = chunk.shape[1]
     print(f"rows: {total_rows}")
     print(f"cols: {n_cols}")
-    print(f"shape: {(total_rows,n_cols)}")
+    print(f"shape: {(total_rows, n_cols)}")
+
 
 def normalize_text(s: str) -> str:
     s = unicodedata.normalize("NFKC", s)
+    s = s.replace("\r\n", "\n").replace("\r", "\n")
+    # "\r\n" converted to "\n" (windows)
+    # "\r" converted to "\n" (mac)
+    s = MANY_NEW_BLANK_LINES.sub("\n\n", s)
+    # to preven huge blank gaps
     return s.strip()  # removes all the extra white spaces
 
 
+def extract_clean_text(csv_path: Path, out_txt: Path,
+                       chunksize: int = 50_000) -> None:
+    read_csv_peek(csv_path)
+    bump_csv_limit()
+    out_txt.parent.mkdir(parents=True, exist_ok=True)
+
+    rows_read = 0
+    docs_written = 0
+
+    with out_txt.open("w", encoding="utf-8") as f_out:
+        for chunk in pd.read_csv(
+                csv_path,
+                engine="python",
+                quotechar='"',
+                usecols=["text"],
+                chunksize=chunksize,
+        ):
+            rows_read += len(chunk)
+            for s in chunk["text"].fillna(""):
+                # chunk["text"]: to see all the text columns
+                # .fillna(""): to fill all the values which
+                # are NaN with empty string, (prevents crashing)
+                s = normalize_text(s)
+                if s:  # if s is not empty
+                    f_out.write(s)
+                    f_out.write("\n\n")  # separete documents clearly
+                    docs_written += 1
+            if rows_read % (chunksize * 2) == 0:
+                print(f"processed rows: {  # just for giving stats
+                      rows_read} | written_docks: {docs_written}")
+        print(f"done. Rows read: {rows_read}, docs written: {docs_written}")
+        print(f"saved cleaned text to: {out_txt}")
+
+
 if __name__ == "__main__":
-    print("Please download the corpus from : \n\thttps://www.kaggle.com/datasets/gzdekzlkaya/wikipedia-text-corpus-for-nlp-and-llm-projects")
+    print("Please download the corpus from : \
+          \n\thttps://www.kaggle.com/datasets/gzdekzlkaya/wikipedia-" +
+          "text-corpus-for-nlp-and-llm-projects")
     print()
     print()
-    outdir = Path("../tokens/") / "bpe_tokenizer"
+    out_token_dir = Path("../tokens/") / "bpe_tokenizer_2"
+    out_token_dir.mkdir(parents=True, exist_ok=True)
     # if the parent doesn't exist then create
-    outdir.mkdir(parents=True, exist_ok=True)
+    out_text = Path("../data_cleaned/") / "wikipedia.cleaned.txt"
+    out_text.parent.mkdir(parents=True, exist_ok=True)
     inpdatadir = Path("../data_raw/")
     inpdata = inpdatadir / "wikipedia_text_corpus.csv"
-    read_csv_peek(inpdata)
+    # read_csv_peek(inpdata)
+    extract_clean_text(inpdata, out_text)
