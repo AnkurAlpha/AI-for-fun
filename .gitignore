@@ -1,3 +1,4 @@
 **/data_cleaned/
 **/tokens/
 wikipedia_text_corpus.csv
+wiki_stem_corpus.csv
