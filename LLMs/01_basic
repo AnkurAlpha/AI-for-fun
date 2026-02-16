@@ -1,0 +1,24 @@
+#!/bin/env python3
+
+from tokenizers import ByteLevelBPETokenizer
+from pathlib import Path
+import sys
+
+base_path = Path("../tokens/") / "bpe_tokenizer_2"
+vocab_path = base_path / "vocab.json"
+merges_path = base_path / "merges.txt"
+
+tokenizer = ByteLevelBPETokenizer(str(vocab_path), str(merges_path))
+
+
+def print_token_analysis(s: str) -> None:
+    out = tokenizer.encode(s)
+    print(f"tokens: {out.tokens}")
+    print(f"ids: {out.ids}")
+    text_back = tokenizer.decode(out.ids)
+    print(f"Decoded words: {text_back}")
+
+
+if __name__ == "__main__":
+    print("Basic LLM")
+    print_token_analysis(str(" ".join(sys.argv[1:])))

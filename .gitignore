@@ -1,4 +1,6 @@
 **/data_cleaned/
 **/tokens/
+.ipynb_checkpoints/
+**/.ipynb_checkpoints/
 wikipedia_text_corpus.csv
 wiki_stem_corpus.csv
