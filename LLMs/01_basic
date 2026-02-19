@@ -1,8 +1,14 @@
 #!/bin/env python3
 
-from tokenizers import ByteLevelBPETokenizer
-from pathlib import Path
+# default modules
 import sys
+# for tokenizing
+from tokenizers import ByteLevelBPETokenizer
+# file paths with ease and clarity
+from pathlib import Path
+# real AI stuff : importing modules required for building LLMs
+import torch
+from torch import nn as nn
 
 base_path = Path("../tokens/") / "bpe_tokenizer_2"
 vocab_path = base_path / "vocab.json"
@@ -19,6 +25,35 @@ def print_token_analysis(s: str) -> None:
     print(f"Decoded words: {text_back}")
 
 
+# making the first LLM component class !!!
+class Mymodel(nn.Module):
+    def __init__(self):
+        super().__init__()
+        # define layers here
+
+    def forward(self, x):
+        # define computeation here
+        return x
+
+
 if __name__ == "__main__":
-    print("Basic LLM")
-    print_token_analysis(str(" ".join(sys.argv[1:])))
+    # print("Basic LLM")
+    # print_token_analysis(str(" ".join(sys.argv[1:])))
+    # get the text , join is important for converting to text
+    text = str(" ".join(sys.argv[1:]))
+
+    # small outputs to get to know from what are we dealing with
+    print(f"inputted text : {text} ")
+    ids = tokenizer.encode(text).ids
+    x = torch.tensor([ids], dtype=torch.long)  # get all the ID's tensor
+    print(f"shape: {x.shape}")
+    print(f"(B,T): {torch.tensor([ids]).shape}")
+
+    # setting up the params
+    device = 'cuda' if torch.cuda.is_available() else 'cpu'
+    print(f"device being used : {device}")
+
+    # finally starting for the real thing
+    x = x.to(device)
+    # for preventing from tensor being on CPU and model
+    # on GPU both should be on CPU or GPU
