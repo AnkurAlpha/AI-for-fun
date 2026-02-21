@@ -9,6 +9,7 @@ from pathlib import Path
 # real AI stuff : importing modules required for building LLMs
 import torch
 from torch import nn as nn
+from torch.nn import functional as F
 
 base_path = Path("../tokens/") / "bpe_tokenizer_2"
 vocab_path = base_path / "vocab.json"
@@ -25,15 +26,41 @@ def print_token_analysis(s: str) -> None:
     print(f"Decoded words: {text_back}")
 
 
-# making the first LLM component class !!!
-class Mymodel(nn.Module):
-    def __init__(self):
-        super().__init__()
-        # define layers here
+# vocab + embedding_dimension
+vocab_size = tokenizer.get_vocab_size()
+embedding_dimension = 128
 
-    def forward(self, x):
+
+# making the first LLM component class !!!
+class SmallLM(nn.Module):
+    # small LLM
+    # Goal (B,T) tokens IDs -> output (B,T,vocab_size) logits
+
+    # it needs only two learnable parts :
+    # 1. Embedding: vocab_size -> embedding_dimension
+    # 2. Linear head: embedding_dimension -> vocab_size
+
+    def __init__(self, vocab_size: int, embedding_dimension: int):
+        super().__init__()
+        print("Running: __init__()")
+        # define layers here
+        self.token_emb = nn.Embedding(vocab_size, embedding_dimension)
+        # above are token embeddings, made through lookup table
+        self.lm_head = nn.Linear(embedding_dimension, vocab_size)
+
+    def forward(self, x, targets=None):
         # define computeation here
-        return x
+        print("Running: forward()")
+
+        # x: (B,T) token ids
+        tok = self.token_emb(x)  # (B,T,C)
+        logits = self.lm_head(tok)  # (B,T,vocab_size)
+
+        loss = None
+        if targets is not None:
+            B, T, V = logits.shape
+            loss = F.cross_entropy(logits.view(B*T, V), targets.view(B*T))
+        return logits, loss
 
 
 if __name__ == "__main__":
@@ -57,3 +84,16 @@ if __name__ == "__main__":
     x = x.to(device)
     # for preventing from tensor being on CPU and model
     # on GPU both should be on CPU or GPU
+
+    # crating targets :
+    # after creating x , create targets by shifting them by 1
+    x_in = x[:, :-1]
+    targets = x[:, 1:]
+
+    model = SmallLM(vocab_size, embedding_dimension).to(device)
+    # first time run : build the neural network -> __init__
+
+    # logits, loss = model(x)  # computeation : -> forward
+    logits, loss = model(x_in, targets)
+    print(f"logits: {logits.shape}")
+    print(f"loss: {loss}")
