@@ -34,6 +34,9 @@ vocab_size = tokenizer.get_vocab_size()
 embedding_dimension = 128
 # each token ID gets mapped to a vector of length 128
 
+# number of tokens that is allowed to be looked by LLM while predicting next
+block_size = 128
+
 # My embedding table has:
 # vocab_size * embedding_dimension parameters
 # 30000 * 128 = 3,840,000 parameters just for token embeddings.
@@ -42,7 +45,6 @@ embedding_dimension = 128
 
 
 class AttentionLLM(nn.Module):
-    block_size = 128
     # small LLM
     # Goal (B,T) tokens IDs -> output (B,T,vocab_size) logits
 
@@ -56,10 +58,20 @@ class AttentionLLM(nn.Module):
         # define layers here
         self.token_emb = nn.Embedding(vocab_size, embedding_dimension)
         # above are token embeddings, made through lookup table
-        self.pos_emb = nn.Embedding(self.block_size, embedding_dimension)
+        self.pos_emb = nn.Embedding(block_size, embedding_dimension)
         # above is for positional embeddings
         self.lm_head = nn.Linear(embedding_dimension, vocab_size)
         # nn.Embedding & nn.Linear stores matrix of learnable weights
+
+        # Implementing Single head causal self attention(C=embedding_dimension)
+        self.key = nn.Linear(embedding_dimension,
+                             embedding_dimension, bias=False)
+        self.value = nn.Linear(embedding_dimension,
+                               embedding_dimension, bias=False)
+        self.query = nn.Linear(embedding_dimension,
+                               embedding_dimension, bias=False)
+        self.register_buffer("tril", torch.tril(
+            torch.ones(block_size, block_size)))
 
     def forward(self, x, targets=None):
         # define computeation here
@@ -76,7 +88,30 @@ class AttentionLLM(nn.Module):
         # self.pos_emb is also an embedding table: nn.Embedding(block_size,C)
         h = tok + pos                   # (B,T,C)
         # tok = (B,T,C) , hence pos = (T,C) -> (1,T,C)
-        logits = self.lm_head(h)  # (B,T,V)
+        B, T, C = h.shape
+
+        k = self.key(h)  # (B,T,C)
+        q = self.query(h)  # (B,T,C)
+        v = self.value(h)  # (B,T,C)
+
+        # attention scores: (B,T,C) @ (B,C,T) -> (B,T,T)
+        weights = q @ k.transpose(-2, -1) * (C ** -0.5)
+        # @-> matrix multiplications
+
+        # causal mask : prevent looking ahead
+        weights = weights.masked_fill(self.tril[:T, :T] == 0, float("-inf"))
+
+        # soft max :
+        weights = F.softmax(weights, dim=-1)
+        # dim=0 would normalize across batches (wrong)
+        # dim=1 would normalize across query positions (wrong)
+        # dim=-1 normalizes across key positions (correct)
+
+        # weighted sum of values: (B,T,T) @ (B,T,C) -> (B,T,C)
+        att_out = weights @ v
+
+        # now produce logits
+        logits = self.lm_head(att_out)  # (B,T,V)
         # takes C-dim vector and outputs a vocab size - dimensional vector
         # using positional embeddings
 
