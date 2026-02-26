@@ -103,7 +103,16 @@ class FeedForward(nn.Module):
 class Block(nn.Module):
     def __init__(self, C: int, n_head: int, block_size: int):
         super().__init__()
-        # To be continued
+        self.ln1 = nn.LayerNorm(C)
+        self.ln2 = nn.LayerNorm(C)
+        self.attn = MultiheadAttention(C, n_head, block_size)
+        self.ff = FeedForward(C)
+
+    def forward(self, x):  # x shape : B,T,C
+        x = x + self.attn(self.ln1(x))  # attention + residual
+        x = x + self.ff(self.ln2(x))    # MLP + residual
+        return x
+
 
 # making the first LLM component class !!!
 
