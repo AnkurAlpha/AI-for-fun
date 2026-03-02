@@ -11,6 +11,21 @@ import torch
 from torch import nn as nn
 from torch.nn import functional as F
 
+# hyperparameters:
+# the size of the vector used to represent each token
+embedding_dimension = 128
+# each token ID gets mapped to a vector of length 128
+
+# number of tokens that is allowed to be looked by LLM while predicting next
+block_size = 128
+# My embedding table has:
+# vocab_size * embedding_dimension parameters
+# 30000 * 128 = 3,840,000 parameters just for token embeddings.
+
+# number of heads and number of layers
+n_head = 8
+n_layer = 4
+
 # please first generate the tokens from the code in tokenizer first
 base_path = Path("../tokens/") / "bpe_tokenizer_2"
 vocab_path = base_path / "vocab.json"
@@ -29,17 +44,6 @@ def print_token_analysis(s: str) -> None:
 
 # vocab + embedding_dimension
 vocab_size = tokenizer.get_vocab_size()
-
-# hyperparameter: the size of the vector used to represent each token
-embedding_dimension = 128
-# each token ID gets mapped to a vector of length 128
-
-# number of tokens that is allowed to be looked by LLM while predicting next
-block_size = 128
-
-# My embedding table has:
-# vocab_size * embedding_dimension parameters
-# 30000 * 128 = 3,840,000 parameters just for token embeddings.
 
 
 class Head (nn.Module):  # class of one single head
@@ -137,8 +141,13 @@ class AttentionLLM(nn.Module):
         # nn.Embedding & nn.Linear stores matrix of learnable weights
 
         # implementing multihead attention
-        self.attn = MultiheadAttention(
-            embedding_dimension, n_head=8, block_size=block_size)
+        # self.attn = MultiheadAttention(
+        #     embedding_dimension, n_head=8, block_size=block_size)
+        self.blocks = nn.Sequential(*[
+            Block(embedding_dimension, n_head=n_head, block_size=block_size)
+            for _ in range(n_layer)
+        ])
+        self.ln_f = nn.LayerNorm(embedding_dimension)
 
     def forward(self, x, targets=None):
         # define computeation here
@@ -152,8 +161,11 @@ class AttentionLLM(nn.Module):
         # torch.arange() Produces : [0,1,2,3, ..., T-1 ] (positional)
         # self.pos_emb is also an embedding table: nn.Embedding(block_size,C)
         h = tok + pos                   # (B,T,C)
-        h = self.attn(h)
-        logits = self.lm_head(h)
+        # h = self.attn(h)
+        # logits = self.lm_head(h)
+        h = self.blocks(h)  # (B,T,C)
+        h = self.ln_f(h)  # final normalization
+        logits = self.lm_head(h)  # (B,T,V)
 
         loss = None
         if targets is not None:
