@@ -4,3 +4,4 @@
 **/.ipynb_checkpoints/
 wikipedia_text_corpus.csv
 wiki_stem_corpus.csv
+**/trained_LLMs_models/

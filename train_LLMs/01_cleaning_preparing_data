@@ -1,0 +1,56 @@
+#!/usr/bin/env python3
+# ------------------------------------------------------
+# For cleaning and converting trainig data into IDs
+# ------------------------------------------------------
+from pathlib import Path
+import numpy as np
+from tokenizers import ByteLevelBPETokenizer
+
+# paths
+clean_txt = Path("../data_cleaned/wikipedia.cleaned.txt")
+tok_dir = Path("../tokens/bpe_tokenizer_2")
+vocab_path = tok_dir / "vocab.json"
+merges_path = tok_dir / "merges.txt"
+
+out_bin = Path("../data_cleaned/wiki_train_ids.bin")
+
+tokenizer = ByteLevelBPETokenizer(str(vocab_path), str(merges_path))
+
+# vocab_size=30000 fits in uint16 (0..65535), so use uint16 for space efficiency
+DTYPE = np.uint16
+
+
+def main():
+    assert clean_txt.exists(), f"Missing: {clean_txt}"
+    ids_all = []
+
+    # stream read to avoid loading huge file at once
+    with clean_txt.open("r", encoding="utf-8") as f:
+        buf = []
+        buf_chars = 0
+        CHUNK_CHARS = 2_000_000  # ~2MB of text per encode
+
+        for line in f:
+            buf.append(line)
+            buf_chars += len(line)
+            if buf_chars >= CHUNK_CHARS:
+                text = "".join(buf)
+                enc = tokenizer.encode(text)
+                ids_all.append(np.array(enc.ids, dtype=DTYPE))
+                buf, buf_chars = [], 0
+
+        # last chunk
+        if buf:
+            text = "".join(buf)
+            enc = tokenizer.encode(text)
+            ids_all.append(np.array(enc.ids, dtype=DTYPE))
+
+    ids = np.concatenate(ids_all)
+    out_bin.parent.mkdir(parents=True, exist_ok=True)
+    ids.tofile(out_bin)
+    print(f"Saved {ids.size:,} token IDs to {out_bin}")
+    print(f"First 20 ids: {ids[:20].tolist()}")
+
+
+if __name__ == "__main__":
+    main()
