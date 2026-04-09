@@ -54,3 +54,9 @@ def main():
 
 if __name__ == "__main__":
     main()
+    # Why we do all this?
+    #
+    # So training becomes:
+    # fast (no repeated tokenization)
+    # memory-safe (chunked reading)
+    # easy (training loop just samples from the .bin file)

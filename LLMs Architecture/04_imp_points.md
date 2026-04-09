@@ -132,3 +132,9 @@ That ReLU is what makes FFN genuinely powerful.
 
 ---
 ---
+# K, Q, V
+* `q (Query)`: “What am I looking for?”
+* `k (Key)`: “What information do I have / what do I represent?”
+* `v (Value)`: “If you choose me, what content should you take from me?”
+---
+---
